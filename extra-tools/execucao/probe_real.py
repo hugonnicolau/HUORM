@@ -48,7 +48,7 @@ OPCOES = {"temperature": 0.0, "top_p": 1.0, "top_k": 1, "seed": 42}
 
 def arranjar_bloco() -> str:
     """Um bloco real, do tamanho que o pipeline envia."""
-    for raiz in ("out_nacional", "out_gabarito_final", "markdown"):
+    for raiz in ("out_nacional", "out_referencia_final", "markdown"):
         p = Path(raiz)
         if not p.exists():
             continue

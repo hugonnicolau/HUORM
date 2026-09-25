@@ -2,7 +2,7 @@
 """Mede o espaço por documento numa saída já produzida e extrapola.
 
 Correr a partir de ~/Desktop/FINAL:
-    python3 medir_espaco.py out_gabarito_final
+    python3 medir_espaco.py out_referencia_final
     python3 medir_espaco.py out_nacional 5623
 """
 import math
@@ -11,7 +11,7 @@ import sys
 
 CLUSTER = 4096
 
-saida = sys.argv[1] if len(sys.argv) > 1 else "out_gabarito_final"
+saida = sys.argv[1] if len(sys.argv) > 1 else "out_referencia_final"
 alvo = int(sys.argv[2]) if len(sys.argv) > 2 else 5623
 
 docs = [d for d in os.listdir(saida) if os.path.isdir(os.path.join(saida, d))]

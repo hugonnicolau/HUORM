@@ -2,7 +2,7 @@
 # Revalidação dos 17 do conjunto de referência, a N=8.
 #
 # NÃO COLAR ESTE CONTEÚDO NO TERMINAL.
-# Guardar o ficheiro em ~/Desktop/FINAL e correr:   bash correr_gabarito.sh
+# Guardar o ficheiro em ~/Desktop/FINAL e correr:   bash correr_referencia.sh
 #
 # Sem `split -n` (não existe no macOS) e sem globs no shell: a repartição
 # pelos 8 lotes é feita em Python, que também evita problemas com o espaço
@@ -12,8 +12,8 @@ set -u
 cd ~/Desktop/FINAL || exit 1
 
 MODELO="glm-5.3-flash"
-MD="markdown_gabarito"
-SAIDA="out_gabarito_final"
+MD="markdown_referencia"
+SAIDA="out_referencia_final"
 
 python3 - <<'PY'
 import os, math, glob

@@ -1,11 +1,11 @@
-# Cinco execucoes do gabarito com um modelo, para medir a concordancia.
+# Cinco execucoes do referencia com um modelo, para medir a concordancia.
 #
 #   .\correr_tar_modelo.ps1 -Modelo "gpt-oss:120b" -Prefixo "out_gptoss"
 #   .\correr_tar_modelo.ps1 -Modelo "<tag-do-deepseek>" -Prefixo "out_ds"
 #
 # Abre seis janelas; cada uma corre os cinco lotes em fila para o seu
 # subconjunto dos 17 documentos. Reutiliza os grep_*.txt gerados pelo
-# lotes_gabarito.py e o markdown ja convertido, por isso nao ha conversao
+# lotes_referencia.py e o markdown ja convertido, por isso nao ha conversao
 # nenhuma a repetir.
 #
 # Cria out_<prefixo>_rep1 ... rep5. Se alguma ja existir, o batch_processor
@@ -20,7 +20,7 @@ param(
 )
 
 if (-not (Test-Path "grep_00.txt")) {
-    Write-Host "Faltam os grep_*.txt. Corre primeiro:  python lotes_gabarito.py $Janelas"
+    Write-Host "Faltam os grep_*.txt. Corre primeiro:  python lotes_referencia.py $Janelas"
     exit 1
 }
 
@@ -33,7 +33,7 @@ Write-Host ""
     $lote = "grep_{0:d2}.txt" -f $_
     $passos = 1..$Execucoes | ForEach-Object {
         "python -m RCMprocessor.batch_processor TestSet ${Prefixo}_rep$_ " +
-        "--model `"$Modelo`" --markdown-dir markdown_gabarito --file-list $lote"
+        "--model `"$Modelo`" --markdown-dir markdown_referencia --file-list $lote"
     }
     $comando = $passos -join "; "
     Start-Process powershell -ArgumentList '-NoExit', '-Command', $comando

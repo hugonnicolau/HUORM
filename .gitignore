@@ -40,7 +40,7 @@ __pycache__/
 RCMs_a_processar/
 TestSet/
 markdown/
-markdown_gabarito/
+markdown_referencia/
 conversao/
 raw_md_referencia/
 QUARENTENA_CONTAMINADOS/
@@ -59,7 +59,7 @@ logref*.txt
 *.xlsx
 dados/
 substancias.txt
-gabarito.txt
+referencia.txt
 
 # --- API (Cloudflare Workers) ------------------------------------------
 # Dependencias do wrangler e estado local: reinstalam-se com npx.

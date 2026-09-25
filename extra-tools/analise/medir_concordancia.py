@@ -9,13 +9,13 @@ As metricas sao as de Atil et al. (2025):
   TARa@N  o mesmo sobre as entidades ja interpretadas
 
 Procedimento:
-  1. correr o gabarito outra vez, para uma pasta nova
-        .\\correr_gabarito.ps1            (ou o comando do batch_processor)
+  1. correr o referencia outra vez, para uma pasta nova
+        .\\correr_referencia.ps1            (ou o comando do batch_processor)
   2. correr este script, apontando as duas pastas
 
 Uso:
-    python medir_concordancia.py out_gabarito_final out_gabarito_rep2
-    python medir_concordancia.py out_gabarito_final out_rep2 out_rep3   (N=3)
+    python medir_concordancia.py out_referencia_final out_referencia_rep2
+    python medir_concordancia.py out_referencia_final out_rep2 out_rep3   (N=3)
 """
 from __future__ import annotations
 

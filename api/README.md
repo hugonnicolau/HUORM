@@ -145,3 +145,16 @@ conter o SQL.
 
 **Imutabilidade.** Os dados correspondem a uma corrida datada do pipeline. Não
 há endpoint de escrita: para actualizar, refaz-se o passo 3 e o passo 4.
+
+**Uma importação por dia.** O passo 4 apaga e reinsere tudo, o que são cerca de
+**69 000 escritas** — e o plano gratuito do D1 dá **100 000 por dia**. Duas
+importações no mesmo dia esgotam a quota e a terceira é recusada com um email
+da Cloudflare. Não é um problema quando acontece:
+
+- as **leituras** são outra quota (5 milhões/dia) e não são afectadas, por isso
+  a API continua a servir normalmente;
+- os dados que já lá estão continuam válidos;
+- a quota reinicia à meia-noite **UTC**.
+
+Por isso convém confirmar a base localmente — `construir_bd.py --verificar`,
+que compara com os números da tese — **antes** de importar, e não depois.

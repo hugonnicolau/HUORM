@@ -2,7 +2,7 @@
 """Resumo da corrida sobre os 17 do conjunto de referência.
 
 Correr a partir de ~/Desktop/FINAL:
-    python3 resumo_gabarito.py
+    python3 resumo_referencia.py
 
 Não altera nada. Só lê os outputs e imprime uma tabela.
 """
@@ -10,7 +10,7 @@ import json
 import os
 import sys
 
-SAIDA = sys.argv[1] if len(sys.argv) > 1 else "out_gabarito_final"
+SAIDA = sys.argv[1] if len(sys.argv) > 1 else "out_referencia_final"
 
 POSITIVOS = {
     "RCM_alopurinol", "RCM_escitalopram", "RCM_Fentanilo", "RCM_Isoniazida",

@@ -15,6 +15,8 @@
  * pedido e concatenado para dentro de SQL.
  */
 
+import { PAGINA } from "./pagina.js";
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -81,7 +83,18 @@ async function rotear(url, db) {
   const p = url.pathname.replace(/\/+$/, "") || "/";
   const lim = limite(url);
 
-  if (p === "/" || p === "/api") return json(INDICE);
+  // A raiz e' para pessoas; /api e' para programas. Mesmo endereco, duas
+  // respostas, escolhidas pelo caminho e nao por negociacao de conteudo —
+  // assim o link da tese abre uma pagina e nao um bloco de JSON.
+  if (p === "/") {
+    return new Response(PAGINA, {
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "public, max-age=300",
+      },
+    });
+  }
+  if (p === "/api") return json(INDICE);
 
   if (p === "/api/estatisticas") {
     const r = await db

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Reparte os 17 do gabarito por N lotes, para a segunda execucao.
+"""Reparte os 17 do referencia por N lotes, para a segunda execucao.
 
-O correr_gabarito.sh original fez isto em bash, com caminhos do Mac. Os
+O correr_referencia.sh original fez isto em bash, com caminhos do Mac. Os
 glote_*.txt que estao na pasta apontam para /Users/hugo/... e nao servem
 aqui. Isto regenera-os com os caminhos desta maquina.
 
@@ -11,7 +11,7 @@ nome do "Acido Folico.pdf", que foi a razao de o original nao usar globs.
 Nao mexe nos glote_*.txt antigos. Escreve grep_00.txt, grep_01.txt, ...
 
 Uso:
-    python lotes_gabarito.py 6
+    python lotes_referencia.py 6
 """
 import glob
 import os
@@ -50,12 +50,12 @@ def main() -> int:
     print(f"  0..{n_proc - 1} | ForEach-Object {{ Start-Process powershell "
           f"-ArgumentList '-NoExit','-Command',"
           f"(\"python -m RCMprocessor.batch_processor TestSet "
-          f"out_gabarito_rep2 --model glm-5.3-flash "
-          f"--markdown-dir markdown_gabarito --file-list grep_{{0:d2}}.txt\" "
+          f"out_referencia_rep2 --model glm-5.3-flash "
+          f"--markdown-dir markdown_referencia --file-list grep_{{0:d2}}.txt\" "
           f"-f $_) }}")
 
     print("\nQuando acabarem:\n")
-    print("  python medir_concordancia.py out_gabarito_final out_gabarito_rep2")
+    print("  python medir_concordancia.py out_referencia_final out_referencia_rep2")
 
     return 0
 
