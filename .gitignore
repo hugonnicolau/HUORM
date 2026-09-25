@@ -1,0 +1,87 @@
+# O que NAO vai para o repositorio publico.
+#
+# Tres razoes distintas, e vale a pena nao as confundir:
+#   1. credenciais    — nunca, em circunstancia nenhuma
+#   2. licenca        — o UMLS restringe a redistribuicao de conteudo derivado
+#   3. volume         — dados e saidas que o GitHub nao aceita nem deve guardar
+
+# --- 1. CREDENCIAIS ----------------------------------------------------
+# A chave do servico do modelo. Publicar um .env e a falha mais comum e a
+# mais cara: os robos varrem o GitHub por chaves em minutos.
+.env
+*.env
+!.env.example
+
+# --- 2. LICENCA --------------------------------------------------------
+# O UMLS exige licenca individual e restringe a redistribuicao de conteudo
+# derivado. O indice e construido a partir do MRCONSO e nao pode ser
+# publicado; quem reproduzir o trabalho gera o seu com
+# construir_indice_mrconso.py a partir da sua propria copia licenciada.
+RCMprocessor/data/umls/
+indice_mrconso.json
+
+# O ClinPGx e de descarga livre mas versionado por data; fica de fora para
+# que ninguem reproduza com uma versao diferente da declarada sem reparar.
+RCMprocessor/data/clinpgx/
+
+# --- 3. VOLUME ---------------------------------------------------------
+# Cache de resolucoes externas: reconstruivel, e nao faz parte do metodo.
+RCMprocessor/data/cache/
+
+# Ambientes virtuais.
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Corpus e saidas. Os RCM sao documentos publicos do INFOMED, mas
+# redistribui-los em massa e outra coisa, e o corpus reconstroi-se com o
+# harvester a partir da fonte.
+RCMs_a_processar/
+TestSet/
+markdown/
+markdown_gabarito/
+conversao/
+raw_md_referencia/
+QUARENTENA_CONTAMINADOS/
+out_*/
+benchmark11/
+
+# Listas de lotes e registos de execucao.
+lote_*.txt
+glote_*.txt
+grep_*.txt
+log_*.txt
+logref*.txt
+*_log.txt
+
+# Analises geradas: saem de correr o pipeline, nao sao codigo.
+*.xlsx
+dados/
+substancias.txt
+gabarito.txt
+
+# --- API (Cloudflare Workers) ------------------------------------------
+# Dependencias do wrangler e estado local: reinstalam-se com npx.
+api/node_modules/
+api/.wrangler/
+
+# O SQL de importacao para o D1. Sao 5 MB gerados a partir do huorm.db pelo
+# exportar_para_d1.py — guardar o derivado ao lado da origem so cria duas
+# coisas que podem divergir.
+api/huorm_d1.sql
+
+# NOTA sobre o api/wrangler.toml: o database_id NAO e uma credencial. E o
+# identificador da base; sem autenticacao na conta nao da acesso a nada, e
+# o wrangler precisa dele para saber onde escrever. Vai para o repositorio.
+
+# A base de dados propriamente dita (basedados/huorm.db) VAI para o
+# repositorio, de proposito. Sao 6 MB, o GitHub aceita ate 100, e sem ela o
+# repositorio nao e reproduzivel: o out_nacional nao vai (secao 3 acima),
+# por isso quem clonar nao conseguiria reconstrui-la. E a saida destilada do
+# trabalho, nao a redistribuicao do corpus.
+basedados/site/huorm.db
+
+# Sistema.
+.DS_Store
+Thumbs.db

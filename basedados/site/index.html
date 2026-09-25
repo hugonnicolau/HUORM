@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HUORM — informação farmacogenómica dos RCM portugueses</title>
+
+<!--
+  Página de consulta da base de dados HUORM.
+
+  Não tem servidor. O ficheiro huorm.db é descarregado uma vez e as consultas
+  correm no browser, em SQLite compilado para WebAssembly. Isso significa que
+  funciona no GitHub Pages ou no Cloudflare Pages sem custo, sem manutenção,
+  e continua a funcionar quando qualquer serviço de alojamento mudar de
+  condições — que é o que costuma matar os links das teses.
+
+  Para publicar: pôr esta pasta e o huorm.db num repositório e activar o
+  GitHub Pages. Nada mais.
+-->
+
+<style>
+  :root { --tinta:#1a1a1a; --suave:#666; --linha:#e0e0e0; --fundo:#fafafa; }
+  * { box-sizing:border-box; }
+  body { font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+         color:var(--tinta); margin:0; background:#fff; }
+  .caixa { max-width:1060px; margin:0 auto; padding:32px 20px 64px; }
+  h1 { font-size:24px; margin:0 0 6px; font-weight:600; }
+  .logo { height:74px; width:auto; display:block; margin:0 0 4px -6px; }
+  .sub { color:var(--suave); margin:0 0 28px; }
+  .estado { padding:10px 14px; background:var(--fundo); border:1px solid var(--linha);
+            border-radius:6px; color:var(--suave); margin-bottom:22px; font-size:14px; }
+  .estado.erro { background:#fff4f4; border-color:#f0c0c0; color:#a33; }
+  textarea { width:100%; min-height:120px; padding:12px; border:1px solid var(--linha);
+             border-radius:6px; font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;
+             resize:vertical; }
+  button { margin-top:10px; padding:9px 18px; border:1px solid var(--tinta);
+           background:var(--tinta); color:#fff; border-radius:6px; cursor:pointer;
+           font-size:14px; }
+  button:disabled { opacity:.4; cursor:default; }
+  .exemplos { margin:22px 0; }
+  .exemplos h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em;
+                 color:var(--suave); margin:0 0 10px; font-weight:600; }
+  .exemplos button { display:block; width:100%; text-align:left; margin:0 0 6px;
+                     background:#fff; color:var(--tinta); border-color:var(--linha);
+                     padding:9px 12px; font-size:14px; }
+  .exemplos button:hover { border-color:var(--tinta); }
+  .exemplos small { color:var(--suave); }
+  table { border-collapse:collapse; width:100%; margin-top:20px; font-size:13px; }
+  th,td { border-bottom:1px solid var(--linha); padding:7px 10px; text-align:left;
+          vertical-align:top; }
+  th { background:var(--fundo); font-weight:600; position:sticky; top:0; }
+  .rolo { max-height:540px; overflow:auto; border:1px solid var(--linha);
+          border-radius:6px; }
+  .contagem { margin-top:14px; color:var(--suave); font-size:13px; }
+  footer { margin-top:48px; padding-top:20px; border-top:1px solid var(--linha);
+           color:var(--suave); font-size:13px; }
+  a { color:var(--tinta); }
+</style>
+</head>
+<body>
+<div class="caixa">
+
+  <!-- O logótipo substitui o título. O alt continua a dizer HUORM, para
+       quem usa leitor de ecrã e para quando a imagem não carrega. -->
+  <img src="huorm-logo.png" alt="HUORM" class="logo"
+       onerror="this.replaceWith(Object.assign(document.createElement('h1'),{textContent:'HUORM'}))">
+  <p class="sub">Informação farmacogenómica extraída dos Resumos das
+  Características do Medicamento portugueses.</p>
+
+  <div class="estado" id="estado">A carregar a base de dados…</div>
+
+  <textarea id="sql" spellcheck="false"></textarea>
+  <button id="correr" disabled>Consultar</button>
+
+  <div class="exemplos">
+    <h2>Perguntas para começar</h2>
+    <button data-sql="SELECT substancia, medicamento, valor, seccoes
+FROM entidade_completa
+WHERE gene = 'CYP2C19'
+ORDER BY substancia
+LIMIT 200;">Que medicamentos mencionam o <b>CYP2C19</b>
+      <small>— e em que secção do rótulo</small></button>
+
+    <button data-sql="SELECT gene, COUNT(DISTINCT ficheiro) AS documentos,
+       SUM(mencoes) AS mencoes
+FROM entidade_completa
+WHERE gene IS NOT NULL
+GROUP BY gene
+ORDER BY mencoes DESC
+LIMIT 25;">Os genes mais mencionados
+      <small>— contando alelos e diplótipos para o gene a que pertencem</small></button>
+
+    <button data-sql="SELECT s.nome, s.cui, s.drugbank, COUNT(d.id) AS documentos
+FROM substancia s
+JOIN documento d ON d.substancia_id = s.id
+GROUP BY s.id
+ORDER BY documentos DESC
+LIMIT 25;">Substâncias com mais rótulos no mercado
+      <small>— com os identificadores UMLS e DrugBank</small></button>
+
+    <button data-sql="SELECT d.medicamento, e.tipo, e.valor, es.seccao,
+       es.mencoes, p.texto
+FROM entidade e
+JOIN documento d       ON d.id = e.documento_id
+JOIN entidade_seccao es ON es.entidade_id = e.id
+LEFT JOIN passagem p   ON p.documento_id = e.documento_id
+                      AND p.seccao = es.seccao
+WHERE d.ficheiro LIKE '%siponimod%'
+   OR d.medicamento LIKE '%Mayzent%';">Tudo o que foi extraído do siponimod
+      <small>— com a passagem do rótulo que sustenta cada entidade</small></button>
+
+    <button data-sql="SELECT es.seccao, COUNT(*) AS entidades,
+       SUM(es.mencoes) AS mencoes,
+       COUNT(DISTINCT e.documento_id) AS documentos
+FROM entidade_seccao es
+JOIN entidade e ON e.id = es.entidade_id
+GROUP BY es.seccao
+ORDER BY mencoes DESC;">Onde é que a farmacogenómica aparece
+      <small>— distribuição pelas secções normativas</small></button>
+
+    <button data-sql="SELECT tipo, COUNT(DISTINCT valor) AS distintas,
+       COUNT(*) AS ocorrencias
+FROM entidade
+GROUP BY tipo;">Quantas entidades de cada tipo
+      <small>— genes, alelos, diplótipos e rsIDs</small></button>
+
+    <button data-sql="SELECT s.nome AS substancia, g.gene, g.fonte,
+       COUNT(DISTINCT d.id) AS rotulos_sem_o_gene
+FROM cobertura c
+JOIN guideline g  ON g.id = c.guideline_id
+JOIN documento d  ON d.id = c.documento_id
+JOIN substancia s ON s.id = d.substancia_id
+WHERE c.estado = 'ausente'
+GROUP BY s.nome, g.gene, g.fonte
+ORDER BY rotulos_sem_o_gene DESC
+LIMIT 100;">Onde é que o rótulo fica aquém da guideline
+      <small>— fármacos com guideline publicada cujo gene o RCM não nomeia</small></button>
+
+    <button data-sql="SELECT g.gene,
+       COUNT(*)                                        AS exigido_em,
+       SUM(CASE WHEN c.estado='ausente' THEN 1 ELSE 0 END) AS ausente_em,
+       ROUND(100.0 * SUM(CASE WHEN c.estado='coberta' THEN 1 ELSE 0 END)
+             / COUNT(*), 1)                            AS pct_coberto
+FROM cobertura c
+JOIN guideline g ON g.id = c.guideline_id
+GROUP BY g.gene
+ORDER BY exigido_em DESC;">Cobertura gene a gene
+      <small>— quantas vezes cada gene é exigido e quantas está em falta</small></button>
+  </div>
+
+  <div id="saida"></div>
+
+  <footer>
+    Base de dados gerada a partir do corpus nacional de RCM.
+    O ficheiro <a href="huorm.db" download>huorm.db</a> pode ser descarregado
+    e consultado em qualquer cliente SQLite.
+    <br>Dissertação de mestrado em Bioinformática e Biologia Computacional,
+    Faculdade de Ciências da Universidade de Lisboa.
+  </footer>
+
+</div>
+
+<script type="module">
+import initSqlJs from "https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js";
+
+const estado  = document.getElementById("estado");
+const areaSql = document.getElementById("sql");
+const botao   = document.getElementById("correr");
+const saida   = document.getElementById("saida");
+
+areaSql.value = document.querySelector(".exemplos button").dataset.sql;
+
+let bd = null;
+
+try {
+  const SQL = await initSqlJs({
+    locateFile: f => `https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/${f}`
+  });
+  const resp = await fetch("huorm.db");
+  if (!resp.ok) throw new Error(`huorm.db não encontrado (${resp.status})`);
+  bd = new SQL.Database(new Uint8Array(await resp.arrayBuffer()));
+
+  const [n] = bd.exec("SELECT (SELECT COUNT(*) FROM documento),"
+                    + " (SELECT COUNT(*) FROM entidade),"
+                    + " (SELECT COUNT(*) FROM substancia)")[0].values;
+  estado.textContent =
+    `${n[0].toLocaleString("pt-PT")} documentos · `
+  + `${n[1].toLocaleString("pt-PT")} entidades · `
+  + `${n[2].toLocaleString("pt-PT")} substâncias. `
+  + `As consultas correm no seu browser; nada é enviado para servidor nenhum.`;
+  botao.disabled = false;
+} catch (e) {
+  estado.className = "estado erro";
+  estado.textContent = "Não foi possível carregar a base de dados: " + e.message;
+}
+
+function mostrar(res) {
+  if (!res.length) {
+    saida.innerHTML = '<p class="contagem">A consulta não devolveu linhas.</p>';
+    return;
+  }
+  const { columns, values } = res[0];
+  const esc = v => v === null ? '<span style="color:#bbb">—</span>'
+                              : String(v).replace(/[<>&]/g, c =>
+                                ({ "<":"&lt;", ">":"&gt;", "&":"&amp;" }[c]));
+  saida.innerHTML =
+    '<div class="rolo"><table><thead><tr>'
+    + columns.map(c => `<th>${esc(c)}</th>`).join("")
+    + "</tr></thead><tbody>"
+    + values.slice(0, 1000).map(l =>
+        "<tr>" + l.map(v => `<td>${esc(v)}</td>`).join("") + "</tr>").join("")
+    + "</tbody></table></div>"
+    + `<p class="contagem">${values.length.toLocaleString("pt-PT")} linhas`
+    + (values.length > 1000 ? ", a mostrar as primeiras mil" : "") + ".</p>";
+}
+
+function consultar() {
+  if (!bd) return;
+  try {
+    mostrar(bd.exec(areaSql.value));
+  } catch (e) {
+    saida.innerHTML = `<p class="contagem" style="color:#a33">${e.message}</p>`;
+  }
+}
+
+botao.addEventListener("click", consultar);
+areaSql.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") consultar();
+});
+document.querySelectorAll(".exemplos button").forEach(b =>
+  b.addEventListener("click", () => { areaSql.value = b.dataset.sql; consultar(); }));
+</script>
+</body>
+</html>

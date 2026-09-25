@@ -1,0 +1,48 @@
+# Contexto de construcao da imagem.
+#
+# Regra: ignorar tudo e voltar a admitir so o que a imagem precisa. O inverso
+# — listar o que se exclui — falha em silencio, porque basta aparecer uma
+# pasta nova para ela entrar na imagem sem ninguem dar por isso.
+#
+# Duas razoes para isto existir.
+#
+# 1. A CHAVE. O Dockerfile faz COPY RCMprocessor/, e o RCMprocessor/.env tem
+#    a OLLAMA_API_KEY. Sem este ficheiro a chave ficava gravada numa camada
+#    da imagem, onde continua legivel mesmo que seja apagada depois. A chave
+#    entra em execucao, por -e OLLAMA_API_KEY, e nunca na construcao.
+#
+# 2. O TAMANHO. O contexto e a pasta inteira: out_nacional sao 5 565
+#    directorios, e ha ainda os PDF por processar, a conversao e o indice do
+#    UMLS. O Docker copia tudo isso para o daemon antes de executar a
+#    primeira linha do Dockerfile, mesmo que nenhuma seja usada.
+
+# tudo
+*
+
+# menos o que a imagem precisa
+!requirements-lock.txt
+!RCMprocessor/
+
+# e dentro do RCMprocessor, nunca isto
+RCMprocessor/.env
+RCMprocessor/**/.env
+RCMprocessor/__pycache__/
+RCMprocessor/**/__pycache__/
+RCMprocessor/**/*.pyc
+RCMprocessor/tests/
+RCMprocessor/extra-tools/
+
+# O ambiente virtual local. Nao serve para nada dentro da imagem — as
+# dependencias sao instaladas no build a partir do requirements-lock.txt — e
+# sozinho sao centenas de MB de binarios compilados para a maquina errada.
+RCMprocessor/.venv/
+
+# O indice do UMLS (MRCONSO) e a cache de resolucao. Sao GB, mudam com a
+# versao do UMLS, e a licenca do UMLS nao permite redistribui-los numa
+# imagem. Entram por montagem em tempo de execucao, como os PDFs:
+#     -v "$PWD/RCMprocessor/data/umls:/app/RCMprocessor/data/umls:ro"
+RCMprocessor/data/umls/
+RCMprocessor/data/cache/
+
+# Lixo do macOS.
+**/.DS_Store

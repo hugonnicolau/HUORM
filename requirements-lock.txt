@@ -1,0 +1,38 @@
+# Ambiente de referência do pipeline de extracção.
+#
+# Estas são as versões com que o corpus foi processado. Cobrem o pipeline e
+# mais nada: as ferramentas auxiliares (harvester do INFOMED, scripts de
+# deduplicação) não fazem parte do que é publicado e não estão aqui.
+#
+# Instalar com:  pip install -r requirements-lock.txt
+# Requer Python 3.12.
+
+# --- PDF -> markdown ---------------------------------------------------
+# A conversão do corpus foi feita com esta versão do docling, com o backend
+# PyPdfium, OCR desactivado e reconhecimento de estrutura de tabelas activo.
+# As três bibliotecas seguintes são componentes do docling e são fixadas
+# porque determinam o markdown produzido.
+docling==2.72.0
+docling-core==2.64.0
+docling-ibm-models==3.11.0
+docling-parse==4.7.3
+pypdfium2==5.4.0
+
+# --- Segmentação por secções -------------------------------------------
+langchain-text-splitters==0.3.11
+
+# --- Cliente do modelo -------------------------------------------------
+ollama==0.6.2
+python-dotenv==1.2.3
+
+# --- Recursos externos (ClinPGx, MeSH, UMLS) ---------------------------
+requests==2.34.2
+
+# --- Análise global em Excel -------------------------------------------
+openpyxl==3.1.5
+
+# --- Restrição herdada -------------------------------------------------
+# O docling arrasta pandas/pyarrow compilados contra NumPy 1.x. Sem este pin
+# a importação falha com "A module that was compiled using NumPy 1.x cannot
+# be run in NumPy 2.x".
+numpy==1.26.4

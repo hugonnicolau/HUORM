@@ -1,0 +1,16 @@
+# Configuracao do Worker. O binding DB e o que o codigo usa como env.DB.
+#
+# O database_id fica em branco de proposito: e criado pela tua conta quando
+# correres o passo 2 do README e e' esse comando que to da. Preenche aqui.
+
+name = "huorm-api"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "huorm"
+database_id = "653fe889-1d88-4a4f-8802-535ffa32240c"
+
+[observability]
+enabled = true

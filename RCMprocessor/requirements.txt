@@ -1,0 +1,32 @@
+# Pinned for reproducibility: a thesis has to run the same way in two years.
+# Versions reflect what the corpus was processed with.
+
+# PDF -> markdown extraction
+docling>=2.0,<3.0
+pypdfium2>=4.0
+
+# Section segmentation
+langchain-text-splitters>=0.3,<0.4
+
+# LLM client
+ollama>=0.4,<1.0
+python-dotenv>=1.0
+
+# External reference resolution (ClinPGx, MeSH, UMLS)
+requests>=2.31
+
+# Global analysis workbook
+openpyxl>=3.1
+
+# docling pulls pandas/pyarrow, which are compiled against NumPy 1.x in most
+# current builds. Without this pin the import fails with
+# "A module that was compiled using NumPy 1.x cannot be run in NumPy 2.x".
+numpy<2
+
+# Removed: merpy and ssmpy. They were dependencies of pgx_ner.py, which was
+# dead code and has been deleted. opencv-python-headless was also dropped —
+# the docling pipeline runs with do_ocr=False and never uses it.
+
+# Optional, used by the standalone tooling:
+#   poppler-utils (pdftotext, pdfinfo) — scanned_pdf_detector, dedup scripts
+#   playwright                          — infomed_harvester
