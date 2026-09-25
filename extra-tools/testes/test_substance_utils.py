@@ -7,7 +7,7 @@ combinada, e as guideline annotations do ClinPGx listam os fármacos
 individualmente: uma combinação só cruza corretamente se for partida da mesma
 maneira nos dois módulos.
 
-    python RCMprocessor/tests/test_substance_utils.py
+    python extra-tools/testes/test_substance_utils.py
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ import importlib.util
 import sys
 from pathlib import Path
 
-SOURCE = Path(__file__).resolve().parent.parent / "substance_utils.py"
+SOURCE = Path(__file__).resolve().parents[2] / "RCMprocessor" / "substance_utils.py"
 spec = importlib.util.spec_from_file_location("substance_utils", SOURCE)
 su = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(su)

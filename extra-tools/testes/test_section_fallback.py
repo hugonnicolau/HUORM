@@ -12,7 +12,7 @@ Dois problemas observados no lote de anestésicos (54 RCM):
   * PDFs com a fonte Symbol produzem códigos da Private Use Area em vez dos
     caracteres reais: "16-160 [U+F06D]g/ml" em vez de "16-160 µg/ml".
 
-    python RCMprocessor/tests/test_section_fallback.py
+    python extra-tools/testes/test_section_fallback.py
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ import sys
 import types
 from pathlib import Path
 
-SOURCE = Path(__file__).resolve().parent.parent / "markdown_processor.py"
+SOURCE = Path(__file__).resolve().parents[2] / "RCMprocessor" / "markdown_processor.py"
 
 
 def _load():

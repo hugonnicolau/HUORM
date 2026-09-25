@@ -5,7 +5,7 @@ Definição sob teste: uma guideline do ClinPGx é um par FÁRMACO-GENE. Não é
 anotação em genes.tsv (relevância abstrata do gene) nem em clinicalVariants.tsv
 (evidência de variante). Só `guidelineAnnotations` conta.
 
-    python RCMprocessor/tests/test_guideline_coverage.py
+    python extra-tools/testes/test_guideline_coverage.py
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ import sys
 import types
 from pathlib import Path
 
-SOURCE = Path(__file__).resolve().parent.parent / "pgx_global_analysis.py"
+SOURCE = Path(__file__).resolve().parents[2] / "RCMprocessor" / "pgx_global_analysis.py"
 
 
 def _load_class():
@@ -23,11 +23,31 @@ def _load_class():
     fake = types.ModuleType("openpyxl")
     fake.Workbook = object
     sys.modules.setdefault("openpyxl", fake)
+
+    # Um substituto por cada módulo que o pgx_global_analysis importa. Se lá
+    # for acrescentado outro import do openpyxl, tem de vir para aqui também,
+    # senão este teste morre com "'openpyxl' is not a package" — foi o que
+    # aconteceu quando o ILLEGAL_CHARACTERS_RE e o Worksheet entraram.
     for sub, names in (("styles", ("Font", "PatternFill", "Alignment")),
-                       ("utils", ("get_column_letter",))):
+                       ("utils", ("get_column_letter",)),
+                       ("cell", ()),
+                       ("cell.cell", ("ILLEGAL_CHARACTERS_RE",)),
+                       ("worksheet", ()),
+                       ("worksheet.worksheet", ("Worksheet",))):
         mod = types.ModuleType(f"openpyxl.{sub}")
         for n in names:
-            setattr(mod, n, object)
+            if n.endswith("_RE"):
+                # tem de ser uma expressão regular a sério: o módulo faz
+                # .sub() com ela. (?!) nunca casa, que é o que queremos.
+                valor = re.compile(r"(?!)")
+            elif n == "Worksheet":
+                # o módulo substitui Worksheet.append por uma versão que
+                # limpa caracteres de controlo, e guarda a original antes —
+                # por isso o substituto tem de ter um append para guardar.
+                valor = type("Worksheet", (), {"append": lambda self, linha: None})
+            else:
+                valor = type(n, (), {})
+            setattr(mod, n, valor)
         sys.modules.setdefault(f"openpyxl.{sub}", mod)
 
     namespace: dict = {}

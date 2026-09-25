@@ -10,7 +10,7 @@ valor na primeira quebra de linha. Medido nos 632 RCMs da pasta RCMs2:
 A truncagem era o problema maior: fragmentava 121 grupos reais do Infarmed em
 473 rótulos textuais distintos, inflacionando a folha de análise por grupo.
 
-    python RCMprocessor/tests/test_markdown_processor.py
+    python extra-tools/testes/test_markdown_processor.py
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ import sys
 import types
 from pathlib import Path
 
-SOURCE = Path(__file__).resolve().parent.parent / "markdown_processor.py"
+SOURCE = Path(__file__).resolve().parents[2] / "RCMprocessor" / "markdown_processor.py"
 
 
 def _load_class():

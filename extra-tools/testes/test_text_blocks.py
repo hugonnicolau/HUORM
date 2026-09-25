@@ -7,7 +7,7 @@ duas metades, e cada metade ia ao modelo sem o contexto da outra — o que
 contradiz a instrução do prompt de "continua a extrair enquanto o texto
 mantiver relação com a mesma informação farmacogenómica".
 
-    python RCMprocessor/tests/test_text_blocks.py
+    python extra-tools/testes/test_text_blocks.py
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ import re
 import sys
 from pathlib import Path
 
-SOURCE = Path(__file__).resolve().parent.parent / "pharmacogenomics_evaluator.py"
+SOURCE = Path(__file__).resolve().parents[2] / "RCMprocessor" / "pharmacogenomics_evaluator.py"
 ENDS_WITH_PUNCTUATION = re.compile(r"[.!?;:]\s*$")
 
 

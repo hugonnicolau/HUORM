@@ -5,7 +5,7 @@ Nenhum teste precisa de rede, de Ollama, de docling nem dos ficheiros de dados
 completos — todos correm em segundos. Correr isto antes de iniciar um batch é
 barato e evita descobrir um problema ao fim de horas de processamento.
 
-    python RCMprocessor/tests/run_all.py
+    python extra-tools/testes/run_all.py
 """
 
 from __future__ import annotations

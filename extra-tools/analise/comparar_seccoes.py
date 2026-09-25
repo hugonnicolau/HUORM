@@ -9,8 +9,8 @@ nao consegue distinguir os dois casos. Aqui comparam-se apenas as sete
 seccoes normativas extraidas pelo pipeline, das quais a 7 nao faz parte.
 
 Uso:
-    python analises/comparar_seccoes.py out_nacional
-    python analises/comparar_seccoes.py out_nacional --csv resultados.csv
+    python extra-tools/analise/comparar_seccoes.py out_nacional
+    python extra-tools/analise/comparar_seccoes.py out_nacional --csv resultados.csv
 
 Nota sobre os nomes dos ficheiros: os RCM portugueses escrevem os cabecalhos
 das seccoes de todas as maneiras possiveis, e o pipeline nomeia o ficheiro a

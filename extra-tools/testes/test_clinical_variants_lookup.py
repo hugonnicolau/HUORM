@@ -9,7 +9,7 @@ Dois problemas corrigidos neste módulo:
   2. o match parcial usava substring nua nos dois sentidos, o que ligava
      fármacos distintos com nomes sobrepostos.
 
-    python RCMprocessor/tests/test_clinical_variants_lookup.py
+    python extra-tools/testes/test_clinical_variants_lookup.py
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-PACKAGE_DIR = Path(__file__).resolve().parent.parent
+PACKAGE_DIR = Path(__file__).resolve().parents[2] / "RCMprocessor"
 
 
 def _load_module():

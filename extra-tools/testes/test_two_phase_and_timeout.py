@@ -18,7 +18,7 @@ avançou. Com timeout, isso passa a ser um erro que o backoff trata — mas só 
 os erros forem distinguidos: um 429 não se resolve a insistir depressa, e um
 401 não se resolve de todo.
 
-    python RCMprocessor/tests/test_two_phase_and_timeout.py
+    python extra-tools/testes/test_two_phase_and_timeout.py
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parents[2] / "RCMprocessor"
 
 
 # ==========================================================================

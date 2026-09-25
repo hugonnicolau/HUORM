@@ -14,7 +14,7 @@ Este teste percorre o código à procura de todos os nomes de folha — literais
 passados a `create_sheet`, atribuições a `ws.title`, e os nomes passados ao
 `_write_frequency_sheet` — e valida-os sem precisar de correr nada.
 
-    python RCMprocessor/tests/test_sheet_names.py
+    python extra-tools/testes/test_sheet_names.py
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ import re
 import sys
 from pathlib import Path
 
-SOURCE = Path(__file__).resolve().parent.parent / "pgx_global_analysis.py"
+SOURCE = Path(__file__).resolve().parents[2] / "RCMprocessor" / "pgx_global_analysis.py"
 
 CARACTERES_PROIBIDOS = set(":\\/?*[]")
 MAX_COMPRIMENTO = 31

@@ -17,7 +17,7 @@ Exigir maiúsculas não resolve. As três ocorrências de "POR" em maiúsculas d
 corpus são "INJEÇÃO POR BÓLUS", cabeçalho de tabela; a única de "AR" é
 "artrite reumatoide (AR)". Zero verdadeiros positivos em ambos.
 
-    python RCMprocessor/tests/test_ambiguous_symbols.py
+    python extra-tools/testes/test_ambiguous_symbols.py
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ import re
 import sys
 from pathlib import Path
 
-SOURCE = Path(__file__).resolve().parent.parent / "pharmacogenomics_evaluator.py"
+SOURCE = Path(__file__).resolve().parents[2] / "RCMprocessor" / "pharmacogenomics_evaluator.py"
 
 
 def _load() -> dict:

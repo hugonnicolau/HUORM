@@ -11,7 +11,7 @@ O siponimod exige genotipagem CYP2C9 antes de prescrever. O pipeline detetava
 o gene pelo texto corrido, mas perdia os diplótipos, que são a informação
 acionável.
 
-    python RCMprocessor/tests/test_table_evaluation.py
+    python extra-tools/testes/test_table_evaluation.py
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ import sys
 import unicodedata
 from pathlib import Path
 
-SOURCE = Path(__file__).resolve().parent.parent / "pharmacogenomics_evaluator.py"
+SOURCE = Path(__file__).resolve().parents[2] / "RCMprocessor" / "pharmacogenomics_evaluator.py"
 
 
 def _load(names: tuple[str, ...]) -> dict:

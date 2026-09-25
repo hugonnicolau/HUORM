@@ -5,7 +5,7 @@ Não precisam de rede, de Ollama, nem dos ficheiros de dados: as funções
 testadas são puras. Correm em segundo.
 
     python -m pytest RCMprocessor/tests/test_pipeline_fixes.py -v
-    python RCMprocessor/tests/test_pipeline_fixes.py          # sem pytest
+    python extra-tools/testes/test_pipeline_fixes.py          # sem pytest
 
 Cada teste documenta o bug que motivou a correção, com o caso concreto que o
 demonstrou. Se algum destes falhar no futuro, a regressão é conhecida.
@@ -23,7 +23,7 @@ from pathlib import Path
 # ollama, dotenv e docling. Para não exigir essas dependências, extraem-se as
 # implementações reais do ficheiro fonte.
 # --------------------------------------------------------------------------
-SOURCE = (Path(__file__).resolve().parent.parent / "pharmacogenomics_evaluator.py")
+SOURCE = (Path(__file__).resolve().parents[2] / "RCMprocessor" / "pharmacogenomics_evaluator.py")
 
 
 def _load_functions() -> dict:

@@ -82,6 +82,15 @@ api/huorm_d1.sql
 # trabalho, nao a redistribuicao do corpus.
 basedados/site/huorm.db
 
+# --- NOTAS DE TRABALHO --------------------------------------------------
+# Rascunhos da escrita da tese: esqueleto, registo de decisoes, historico de
+# alteracoes. Ficam no disco mas nao no repositorio publico, porque tem
+# numeros de versoes anteriores que a tese entretanto corrigiu — um
+# documento publico a contradizer a tese e pior do que nao existir.
+# A bibliografia e' a excepcao: nao tem numeros e e' util.
+documentacao/*
+!documentacao/referencias.bib
+
 # Sistema.
 .DS_Store
 Thumbs.db
