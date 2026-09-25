@@ -16,7 +16,7 @@ export const PAGINA = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HUORM — informação farmacogenómica dos RCM portugueses</title>
+<title>HUORM: informação farmacogenómica dos RCM portugueses</title>
 <style>
   :root { --tinta:#1a1a1a; --suave:#666; --linha:#e0e0e0; --fundo:#fafafa; }
   * { box-sizing:border-box; }
@@ -63,7 +63,7 @@ export const PAGINA = `<!DOCTYPE html>
   <h1>HUORM</h1>
   <p class="sub">Informação farmacogenómica extraída dos Resumos das
   Características do Medicamento portugueses. As perguntas abaixo são feitas
-  à API pública desta mesma página; cada uma mostra o endereço que usou, para
+  à API pública desta mesma página. Cada uma mostra o endereço que usou, para
   poder ser repetida a partir de qualquer programa.</p>
 
   <div class="estado" id="estado">A carregar…</div>
@@ -71,16 +71,16 @@ export const PAGINA = `<!DOCTYPE html>
   <h2>Perguntas</h2>
   <div class="perguntas">
     <button data-url="/api/cobertura/genes">Cobertura das guidelines, gene a gene
-      <small>— quantas vezes cada gene é exigido e quantas está em falta no rótulo</small></button>
+      <small>quantas vezes cada gene é exigido e quantas está em falta no rótulo</small></button>
 
     <button data-url="/api/cobertura?estado=ausente&limite=200">Onde o rótulo fica aquém da guideline
-      <small>— fármacos com guideline publicada cujo gene o RCM não nomeia</small></button>
+      <small>fármacos com guideline publicada cujo gene o RCM não nomeia</small></button>
 
     <button data-url="/api/genes?limite=40">Genes mais mencionados
-      <small>— contando alelos e diplótipos para o gene a que pertencem</small></button>
+      <small>contando alelos e diplótipos para o gene a que pertencem</small></button>
 
     <button data-url="/api/seccoes">Onde é que a farmacogenómica aparece
-      <small>— distribuição pelas secções normativas do RCM</small></button>
+      <small>distribuição pelas secções normativas do RCM</small></button>
   </div>
 
   <h2>Procurar uma substância</h2>
@@ -102,7 +102,7 @@ export const PAGINA = `<!DOCTYPE html>
 
   <footer>
     Dados de uma corrida datada do pipeline, sobre 5 565 RCM do INFOMED.
-    A API é pública e devolve JSON: <a href="/api">ver os endereços</a>.
+    A API é pública e devolve JSON. <a href="/api">Ver os endereços</a>.
     <br>Dissertação de mestrado em Bioinformática e Biologia Computacional,
     Faculdade de Ciências da Universidade de Lisboa.
   </footer>
@@ -122,8 +122,8 @@ const esc = v => v === null || v === undefined
 try {
   const r = await (await fetch("/api/estatisticas")).json();
   estado.textContent =
-    num(r.documentos) + " documentos · " + num(r.substancias) + " substâncias · "
-    + num(r.mencoes) + " menções de entidades · "
+    num(r.documentos) + " documentos, " + num(r.substancias) + " substâncias, "
+    + num(r.mencoes) + " menções de entidades, "
     + num(r.documentos_com_pgx) + " documentos com conteúdo farmacogenómico";
 } catch (e) {
   estado.className = "estado erro";

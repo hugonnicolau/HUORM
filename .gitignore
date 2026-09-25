@@ -91,6 +91,15 @@ basedados/site/huorm.db
 documentacao/*
 !documentacao/referencias.bib
 
+# --- GUIAS DE MONTAGEM --------------------------------------------------
+# Instrucoes passo a passo para montar a base e publicar a API, com caminhos
+# do disco de quem as escreveu. Sao notas operacionais, nao contributo: o
+# contributo e' o codigo que esta aqui e a consulta publica que ja funciona.
+# Quem quiser montar a sua instancia le o codigo, que esta comentado.
+PASSO_A_PASSO.md
+api/README.md
+basedados/COMO_MONTAR.md
+
 # Sistema.
 .DS_Store
 Thumbs.db
