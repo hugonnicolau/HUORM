@@ -1,4 +1,4 @@
-# HUORM
+<img src="logo.png" alt="HUORM" width="380">
 
 Pipeline de extracção de informação farmacogenómica dos Resumos das
 Características do Medicamento (RCM) portugueses, baseado num modelo de
