@@ -53,7 +53,7 @@ def _texto(v) -> str:
 # A ordem importa. Um item pode trazer 'entity' e 'symbol' preenchidos com
 # valores diferentes; ler primeiro um ou o outro atribui as mesmas mencoes a
 # rotulos distintos. Com a ordem trocada, esta base dava 4 437 mencoes de
-# genes onde o pipeline conta 4 435.
+# genes onde o pipeline contava 4 435 (corpus anterior a 26-09-2026).
 _HLA_SEM_DOIS_PONTOS = re.compile(r"^(HLA-[A-Z]+\d*)\*(\d{4})$", re.IGNORECASE)
 
 
@@ -107,8 +107,8 @@ def ler_entidades_das_seccoes(pasta: Path) -> tuple[dict, bool]:
         av = o.get("avaliacao_farmacogenomica")
         if not isinstance(av, dict):
             continue
-        # Conteudo PGx e' uma coisa, entidade extraida e' outra: 3 142
-        # documentos falam de genetica e so 1 206 nomeiam uma entidade. Sao
+        # Conteudo PGx e' uma coisa, entidade extraida e' outra: 3 131
+        # documentos falam de genetica e so 1 200 nomeiam uma entidade. Sao
         # duas colunas distintas e nao podem sair do mesmo sinalizador.
         if str(av.get("contem_farmacogenomica", "")).lower().startswith("sim"):
             tem_pgx = True
@@ -424,15 +424,15 @@ def verificar(caminho: Path) -> int:
     print(f"\n   menções de entidades: {total}")
     pgx = con.execute("SELECT COUNT(*) FROM documento WHERE tem_pgx=1").fetchone()[0]
     ent = con.execute("SELECT COUNT(*) FROM documento WHERE tem_entidades=1").fetchone()[0]
-    if n_docs == 5565:
-        print("   o capítulo 4 reporta 5885", end="")
-        print("  <-- BATE" if total == 5885 else
+    if n_docs == 5551:
+        print("   o capítulo 4 reporta 5831", end="")
+        print("  <-- BATE" if total == 5831 else
               "  <-- NÃO BATE: ver valor_entidade() e ler_entidades_das_seccoes()")
         # Sao duas coisas diferentes e ja saíram iguais por engano uma vez.
-        print(f"   documentos com conteúdo PGx : {pgx}  (tese: 3142)"
-              + ("  ok" if pgx == 3142 else "  <-- NÃO BATE"))
-        print(f"   documentos com entidade     : {ent}  (tese: 1206)"
-              + ("  ok" if ent == 1206 else "  <-- NÃO BATE"))
+        print(f"   documentos com conteúdo PGx : {pgx}  (tese: 3131)"
+              + ("  ok" if pgx == 3131 else "  <-- NÃO BATE"))
+        print(f"   documentos com entidade     : {ent}  (tese: 1200)"
+              + ("  ok" if ent == 1200 else "  <-- NÃO BATE"))
     else:
         print(f"   ({n_docs} documentos, não é o corpus inteiro: não comparo"
               " com a tese)")
@@ -458,7 +458,7 @@ def verificar(caminho: Path) -> int:
         "SELECT g.gene, COUNT(*),"
         "       SUM(CASE WHEN c.estado='ausente' THEN 1 ELSE 0 END)"
         " FROM cobertura c JOIN guideline g ON g.id = c.guideline_id"
-        " GROUP BY g.gene ORDER BY 2 DESC LIMIT 5"
+        " GROUP BY g.gene ORDER BY 2 DESC LIMIT 6"
     ):
         print(f"      {g:12} exigido em {esp:5}, ausente em {falta:5}"
               f"  ({falta/esp*100:.0f} %)")

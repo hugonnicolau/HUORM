@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Resumo da corrida sobre os 17 do conjunto de referência.
 
-Correr a partir de ~/Desktop/FINAL:
+Correr a partir da raiz do projecto:
     python3 resumo_referencia.py
 
 Não altera nada. Só lê os outputs e imprime uma tabela.

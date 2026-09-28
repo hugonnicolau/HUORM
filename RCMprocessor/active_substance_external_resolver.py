@@ -16,6 +16,13 @@ from .substance_utils import normalize as _shared_normalize
 from .substance_utils import split_substances as _shared_split_substances
 
 
+
+# Versão das regras de correspondência com o ClinPGx (substance_utils:
+# palavras genéricas, estereoisómeros, equivalências; e sinónimos do UMLS só de
+# correspondências exactas). Entradas da cache gravadas com outra versão têm o
+# cruzamento com o ClinPGx refeito.
+REGRAS_CLINPGX = "2026-09-28"
+
 class ActiveSubstanceExternalResolver:
     """Resolve external references for an active substance.
 
@@ -757,6 +764,15 @@ class ActiveSubstanceExternalResolver:
 
         for bloco in (mrconso or {}).get("results_by_substance", {}).values():
             for match in (bloco or {}).get("matches", []):
+                # Only concepts the query matched exactly. A partial match
+                # brings the synonyms of whatever concept happened to contain
+                # the words: "paracetamol + caffeine" reached aspirin through
+                # the brand "acetaminophen/aspirin/caffeine", salicylates
+                # reached it through "Aspirin measurement", and amiloride with
+                # hydrochlorothiazide reached atenolol through
+                # "Atenolol+co-amilozide".
+                if match.get("match_type") != "exact":
+                    continue
                 for termo in match.get("english_terms", []):
                     t = str(termo).strip()
                     # A substance name, not a formulation: at most two tokens
@@ -794,6 +810,22 @@ class ActiveSubstanceExternalResolver:
                 # português. Recalculam-se, senão o bug fica preso na cache.
                 and "english_terms" in mrconso_cache_text
             ):
+                if cached.get("regras_clinpgx") == REGRAS_CLINPGX:
+                    return cached
+                # As regras de correspondência com o ClinPGx mudaram depois
+                # de esta entrada ser gravada. O MRCONSO e o MeSH guardados
+                # continuam válidos; só o cruzamento com o ClinPGx é refeito,
+                # a partir deles e sem rede. Sem isto, uma nova corrida
+                # repetiria as associações erradas guardadas na cache.
+                mrconso = refs.get("mrconso") or {}
+                queries_expandidas = self._expandir_com_sinonimos(queries, mrconso)
+                refs["clinpgx"] = self._resolve_clinpgx(queries_expandidas)
+                cached["queries"] = queries
+                cached["queries_expandidas"] = queries_expandidas
+                cached["regras_clinpgx"] = REGRAS_CLINPGX
+                self.cache[key] = cached
+                self._sujas.add(key)
+                self._save_cache()
                 return cached
 
         # O MRCONSO corre PRIMEIRO, ao contrário do que era.
@@ -806,6 +838,7 @@ class ActiveSubstanceExternalResolver:
         queries_expandidas = self._expandir_com_sinonimos(queries, mrconso)
 
         result = {
+            "regras_clinpgx": REGRAS_CLINPGX,
             "queries": queries,
             "queries_expandidas": queries_expandidas,
             "references": {

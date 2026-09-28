@@ -10,7 +10,7 @@ coincidirem, esse documento paga o varrimento como antes.
 Acrescenta também as substâncias que já estão na cache, para que as entradas
 antigas (a que falta o campo `english_terms`) sejam refeitas de uma vez.
 
-Uso, a partir de ~/Desktop/FINAL:
+Uso, a partir da raiz do projecto:
     python3 listar_substancias.py RCMs_a_processar dados/medicamentos.csv
 """
 from __future__ import annotations

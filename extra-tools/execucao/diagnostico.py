@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Onde está o tempo a ser gasto na corrida nacional.
 
-Correr a partir de ~/Desktop/FINAL:
+Correr a partir da raiz do projecto:
     python3 diagnostico.py
 """
 import json

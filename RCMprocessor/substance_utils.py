@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from functools import lru_cache
 
 # Separators that genuinely delimit two active substances in an RCM.
 # ``e``/``and`` are included because RCMs write "ácido X e cafeína", but see
@@ -39,12 +40,46 @@ STOPWORDS = frozenset({
     "etc", "e", "and", "ou", "or", "de", "da", "do", "e outros",
 })
 
+# Salt, counter-ion and other generic words. They name what accompanies the
+# active moiety, never the active substance itself, and matched on their own
+# they link a product to any drug that shares the word: "cloridrato" split out
+# of "beta-histina, cloridrato" reached the irinotecan and imipramine
+# guidelines through "irinotecan hydrochloride"; "sodium" linked sodium
+# chloride to the CPIC G6PD entry for sodium nitrate; "acid" linked every acid
+# to folic acid; "K", a synonym of potassium, linked potassium salts to
+# "Vitamin K and analogues". A match that rests only on one of these words is
+# no match.
+GENERIC_TERMS = frozenset({
+    "acid", "acids", "acido", "acidos",
+    "sodium", "sodio", "sodica", "sodico", "na",
+    "potassium", "potassio", "potassica", "potassico", "k",
+    "calcium", "calcio", "magnesium", "magnesio",
+    "hydrochloride", "dihydrochloride", "hcl", "cloridrato", "dicloridrato",
+    "chloride", "cloreto", "bromide", "brometo",
+    "sulfate", "sulphate", "sulfato", "phosphate", "fosfato",
+    "nitrate", "nitrato", "acetate", "acetato", "citrate", "citrato",
+    "gluconate", "gluconato", "lactate", "lactato", "carbonate", "carbonato",
+    "fumarate", "fumarato", "maleate", "maleato", "tartrate", "tartarato",
+    "succinate", "succinato", "mesylate", "mesilato", "besylate", "besilato",
+    "hydrate", "hidratado", "monohydrate", "dihydrate", "trihydrate",
+    "anhydrous", "anidro", "salt", "sal", "hmg",
+    "live", "viva", "attenuated", "atenuada", "strain", "estirpe",
+    "vitamin", "vitamins", "vitamina", "vitaminas", "measurement",
+})
+
+# Stereochemical prefixes. "(S)-citalopram" is escitalopram and
+# "(S)-omeprazole" is esomeprazole; letting the unprefixed name match would
+# attach the citalopram and omeprazole guidelines to their enantiomers, which
+# the curated table below deliberately does not do.
+_STEREO_PREFIX = re.compile(r"(?:\((?:s|r|\+|-)\)|\b(?:s|r|l|d))-\s*$")
+
 # Below this length a token is far too short to be safely used with the
 # substring matching in ``_matches_query`` - "K" or "AC" would match almost
 # anything in a reference database.
 MIN_QUERY_LENGTH = 4
 
 
+@lru_cache(maxsize=200_000)
 def normalize(text: str) -> str:
     """Lowercase, strip diacritics, collapse whitespace."""
     if not text:
@@ -93,7 +128,7 @@ def split_substances(text: str, *, keep_whole: bool = True) -> list[str]:
 
         if not norm or norm in seen:
             continue
-        if norm in STOPWORDS:
+        if norm in STOPWORDS or norm in GENERIC_TERMS:
             continue
         # The whole string is exempt from the length guard: it was supplied by
         # the caller, not produced by splitting.
@@ -128,13 +163,29 @@ EQUIVALENCES: dict[str, tuple[str, ...]] = {
     # dexibuprofen is the S-(+)-enantiomer of ibuprofen; the CPIC CYP2C9 NSAID
     # guideline is written for ibuprofen.
     "dexibuprofen": ("ibuprofen",),
+    # Same substance under two names. ClinPGx lists the common name; before
+    # the generic-word guard these pairs were reached only by accident,
+    # through the word "acid".
+    "acetylsalicylic acid": ("aspirin",),
+    "ascorbic acid": ("vitamin c",),
+    # ClinPGx writes metamizole under its USAN, dipyrone.
+    "metamizole": ("dipyrone",),
+    "metamizol": ("dipyrone",),
 }
 
 
-def _expand_equivalences(query_norm: str) -> list[str]:
-    return [query_norm, *EQUIVALENCES.get(query_norm, ())]
+@lru_cache(maxsize=200_000)
+def _expand_equivalences(query_norm: str) -> tuple[str, ...]:
+    # The key may be the whole query or a word of it, so that the salt form
+    # ("metamizole sodium monohydrate") inherits the equivalence too.
+    out = [query_norm]
+    for key, equivalents in EQUIVALENCES.items():
+        if query_norm == key or re.search(rf"\b{re.escape(key)}\b", query_norm):
+            out.extend(equivalents)
+    return tuple(out)
 
 
+@lru_cache(maxsize=500_000)
 def matches(value: str, query: str) -> bool:
     """
     Word-boundary-aware substring match between a reference value and a query.
@@ -172,7 +223,14 @@ def matches(value: str, query: str) -> bool:
             else (value_norm, candidate)
         )
 
-        if re.search(rf"\b{re.escape(shorter)}\b", longer):
+        # A generic word or a fragment too short to identify a substance
+        # cannot carry a match on its own.
+        if shorter in GENERIC_TERMS or len(shorter) < MIN_QUERY_LENGTH:
+            continue
+
+        for m in re.finditer(rf"\b{re.escape(shorter)}\b", longer):
+            if _STEREO_PREFIX.search(longer[:m.start()]):
+                continue
             return True
 
     return False

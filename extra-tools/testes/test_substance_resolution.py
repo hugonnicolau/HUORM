@@ -37,8 +37,25 @@ from RCMprocessor.active_substance_external_resolver import (  # noqa: E402
 # --------------------------------------------------------------------------
 
 def _mrconso(*matches):
-    """Devolve a forma que _resolve_mrconso produz, para alimentar os testes."""
-    return {"results_by_substance": {"q": {"matches": list(matches)}}}
+    """Devolve a forma que _resolve_mrconso produz, para alimentar os testes.
+
+    Sem match_type explícito, a correspondência é exacta: é o caso que a
+    expansão aceita.
+    """
+    return {"results_by_substance": {"q": {"matches": [
+        {"match_type": "exact", **m} for m in matches]}}}
+
+
+def test_nao_expande_correspondencias_parciais():
+    """Uma correspondência parcial traz os sinónimos de outro conceito.
+
+    Caso real: "paracetamol + caffeine" casou parcialmente com a marca
+    "acetaminophen/aspirin/caffeine" e ficou ligado às guidelines da aspirina.
+    """
+    m = _mrconso({"cui": "C1", "match_type": "partial",
+                  "english_terms": ["Acetaminophen/Aspirin/Caffeine", "Aspirin measurement"]})
+    out = Resolver._expandir_com_sinonimos(["paracetamol + caffeine"], m)
+    assert out == ["paracetamol + caffeine"], out
 
 
 def test_expande_com_o_nome_ingles():
@@ -139,6 +156,34 @@ def test_exacto_ganha_ao_parcial_entre_consultas():
 
 
 # ==========================================================================
+
+def test_cache_antiga_refaz_o_cruzamento_com_o_clinpgx():
+    """Uma entrada da cache gravada com as regras antigas não pode ser devolvida
+    tal como está: repetiria as associações erradas. O MRCONSO guardado chega
+    para refazer o cruzamento, sem rede."""
+    import json, tempfile
+    from RCMprocessor.active_substance_external_resolver import REGRAS_CLINPGX
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        gdir = tmp / "clinpgx" / "guidelineAnnotations"
+        gdir.mkdir(parents=True)
+        (gdir / "G1.json").write_text(json.dumps({"guideline": {
+            "id": "G1", "name": "G6PD low risk", "source": "CPIC",
+            "relatedChemicals": [{"name": "sodium nitrate"}],
+            "relatedGenes": [{"symbol": "G6PD"}]}}), encoding="utf-8")
+        r = Resolver(data_dir=tmp, cache_path=tmp / "cache.json")
+        chave = r._cache_key("cloreto de sódio", ["sodium chloride"])
+        r.cache[chave] = {"references": {
+            "clinpgx": {"found": True, "matches": [{"guideline_id": "G1"}]},
+            "mrconso": {"results_by_substance": {"sodium chloride": {"matches": [
+                {"match_type": "exact", "drugbank_id": "DB09153",
+                 "english_terms": ["Sodium chloride", "Sodium"]}]}}},
+            "mesh": {}}}
+        out = r.resolve("cloreto de sódio", ["sodium chloride"])
+        assert out["regras_clinpgx"] == REGRAS_CLINPGX
+        assert out["references"]["clinpgx"]["matches"] == [], out["references"]["clinpgx"]
+
+
 if __name__ == "__main__":
     failures = 0
     tests = [(n, f) for n, f in sorted(globals().items())

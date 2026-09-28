@@ -1,9 +1,13 @@
 """Densidade de palavras portuguesas nos documentos retidos.
 Replica _readability() do scanned_pdf_detector.py, com pdftotext -layout,
 que foi exactamente como a triagem correu."""
-import re, os, json, subprocess, sys
-SRC="/sessions/gallant-clever-allen/mnt/ApresentaçãoV2/FINALV2/RCMs_a_processar"
-OUT="/tmp/densidade.jsonl"
+import re, os, json, subprocess, sys, tempfile
+
+# Pasta dos PDF e ficheiro de saida, ambos configuraveis:
+#     python medir_densidade.py [pasta] [saida.jsonl]
+SRC = sys.argv[1] if len(sys.argv) > 1 else "RCMs_a_processar"
+OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(
+    tempfile.gettempdir(), "densidade.jsonl")
 _COMMON=("de","que","para","não","com","dose","doentes","medicamento","utilização","efeitos")
 _PATS=tuple(re.compile(r"\b"+w+r"\b", re.IGNORECASE) for w in _COMMON)
 def readability(body):

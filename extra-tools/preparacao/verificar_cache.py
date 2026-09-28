@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Confirma que a cache passou a ser aceite pelo portão do resolve().
 
-Correr a partir de ~/Desktop/FINAL:
+Correr a partir da raiz do projecto:
     python3 verificar_cache.py
 
 Antes do pré-aquecimento dava 0%.

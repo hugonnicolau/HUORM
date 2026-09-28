@@ -26,7 +26,7 @@ extra-tools/        Tudo o que não é o pipeline.
   preparacao/         antes da corrida: índice MRCONSO, cache, lotes
   execucao/           durante: lançamento, progresso, diagnóstico
   analise/            depois: os números que entram na dissertação
-  testes/             189 testes automáticos
+  testes/             199 testes automáticos
   dados/              saídas guardadas em CSV
 Dockerfile          Ambiente de execução fixado.
 ```
@@ -38,9 +38,10 @@ dissertação e não deve dar a entender que faz.
 
 ## Corpus
 
-5 565 RCM do INFOMED, deduplicados por identidade textual exacta. Deles saíram
-5 885 menções de entidades farmacogenómicas, em 3 142 documentos com conteúdo
-farmacogenómico.
+5 605 RCM do INFOMED, deduplicados por identidade textual exacta; 5 551
+chegaram à análise (54 não tinham texto utilizável depois da conversão). Deles
+saíram 5 831 menções de entidades farmacogenómicas, em 3 131 documentos com
+conteúdo farmacogenómico.
 
 ## Correr os testes
 
@@ -48,7 +49,7 @@ farmacogenómico.
 python extra-tools/testes/run_all.py
 ```
 
-Devem passar 189 de 189.
+Devem passar 199 de 199.
 
 ## O que não está aqui
 

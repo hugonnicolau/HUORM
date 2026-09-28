@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Mede o espaço por documento numa saída já produzida e extrapola.
 
-Correr a partir de ~/Desktop/FINAL:
+Correr a partir da raiz do projecto:
     python3 medir_espaco.py out_referencia_final
     python3 medir_espaco.py out_nacional 5623
 """

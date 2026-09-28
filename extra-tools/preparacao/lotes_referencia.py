@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Reparte os 17 do referencia por N lotes, para a segunda execucao.
 
-O correr_referencia.sh original fez isto em bash, com caminhos do Mac. Os
-glote_*.txt que estao na pasta apontam para /Users/hugo/... e nao servem
-aqui. Isto regenera-os com os caminhos desta maquina.
+O correr_referencia.sh original fez isto em bash, com caminhos absolutos de
+outra maquina. Os glote_*.txt que ficaram na pasta apontam para esses
+caminhos e nao servem aqui; isto regenera-os para a maquina onde corre.
 
 Percorre subpastas (TestSet/1oDS+ e TestSet/2oDT-) e lida com o espaco no
 nome do "Acido Folico.pdf", que foi a razao de o original nao usar globs.

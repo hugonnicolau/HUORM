@@ -17,7 +17,7 @@ Este script percorre as entradas que falham o portão, recupera a lista de
 consultas que cada uma guarda, e manda o `resolve()` refazê-la — com o MRCONSO
 servido pelo índice. A chave sai igual porque as consultas são as mesmas.
 
-Uso, a partir de ~/Desktop/FINAL:
+Uso, a partir da raiz do projecto:
     python3 refazer_cache_antiga.py indice_mrconso.json
     python3 refazer_cache_antiga.py indice_mrconso.json 0 4
 """

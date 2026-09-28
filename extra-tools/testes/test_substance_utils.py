@@ -174,6 +174,54 @@ def test_empty_values_never_match():
 
 
 # ==========================================================================
+# Palavras genéricas, estereoisómeros e equivalências (correcção de 28-09-2026)
+# ==========================================================================
+# Casos reais do corpus nacional em que uma palavra de sal ou genérica ligava
+# um medicamento a uma guideline de outro fármaco.
+def test_sal_separado_por_virgula_nao_e_substancia():
+    assert su.split_substances("beta-histina, cloridrato") == [
+        "beta-histina, cloridrato", "beta-histina"]
+
+
+def test_sodio_nao_liga_ao_nitrato_de_sodio():
+    assert su.matches("sodium nitrate", "sodium chloride") is False
+    assert su.matches("sodium nitrate", "Sodium") is False
+
+
+def test_acido_nao_liga_ao_acido_folico():
+    assert su.matches("folic acid", "acid") is False
+    assert su.matches("folic acid", "folic acid") is True
+
+
+def test_potassio_k_nao_liga_a_vitamina_k():
+    assert su.matches("Vitamin K and analogues", "K") is False
+    assert su.matches("Vitamin K and analogues", "Vitamin K") is True
+
+
+def test_hmg_da_menotropina_nao_liga_as_estatinas():
+    assert su.matches("HMG-CoA reductase inhibitors", "HMG") is False
+
+
+def test_cloridrato_de_outro_farmaco_nao_liga():
+    assert su.matches("imipramine", "imipramine hydrochloride") is True
+    assert su.matches("imipramine", "hydrochloride") is False
+
+
+def test_estereoisomero_nao_herda_a_guideline():
+    assert su.matches("citalopram", "(S)-citalopram") is False
+    assert su.matches("omeprazole", "S-omeprazole") is False
+    assert su.matches("citalopram", "escitalopram") is False
+    assert su.matches("citalopram", "citalopram hydrobromide") is True
+
+
+def test_equivalencias_declaradas():
+    assert su.matches("aspirin", "acetylsalicylic acid") is True
+    assert su.matches("vitamin c", "ascorbic acid") is True
+    assert su.matches("dipyrone", "metamizole sodium monohydrate") is True
+    assert su.matches("ibuprofen", "dexibuprofen") is True
+
+
+# ==========================================================================
 if __name__ == "__main__":
     failures = 0
     tests = [(n, f) for n, f in sorted(globals().items())

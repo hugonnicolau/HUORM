@@ -138,7 +138,7 @@ class PGxGlobalAnalysis:
         """
         CAUSAS = {
             "scanned": "Digitalização sem camada de texto",
-            "corrupt": "Fonte sem mapa de caracteres — texto ilegível",
+            "corrupt": "Fonte sem mapa de caracteres: texto ilegível",
             "sem_estrutura": "Títulos sem numeração nem distinção tipográfica",
         }
         linhas = []
@@ -157,7 +157,9 @@ class PGxGlobalAnalysis:
                 "documento": pasta.name,
                 "estado": estado,
                 "causa": CAUSAS.get(estado, "Não classificado"),
-                "detalhe": str(dados.get("reason") or ""),
+                # O motivo vem do detector tal como foi gravado na corrida; só a
+                # pontuação muda para a folha.
+                "detalhe": str(dados.get("reason") or "").replace(" — ", ": "),
                 "caracteres": dados.get("chars", ""),
             })
         return sorted(linhas, key=lambda x: (x["estado"], x["documento"]))
@@ -224,9 +226,12 @@ class PGxGlobalAnalysis:
         return value if isinstance(value, dict) else {}
 
     def _pct(self, part: int | float, total: int | float) -> float:
+        # Uma casa decimal em todo o livro, a mesma precisao da dissertacao:
+        # com duas, o Excel dizia 21,62% onde o texto diz 21,6%, e quem cruza
+        # os dois ve uma diferenca que nao existe.
         if not total:
             return 0.0
-        return round((part / total) * 100, 2)
+        return round((part / total) * 100, 1)
 
     def _bool_value(self, value: Any) -> bool:
         if isinstance(value, bool):
@@ -1056,6 +1061,12 @@ class PGxGlobalAnalysis:
         # Pares (documento, gene) sem repetição — ver comentário no ciclo.
         distinct_expected: set[tuple[str, str]] = set()
         distinct_covered: set[tuple[str, str]] = set()
+        # Pares substancia x gene: a unidade da dissertacao (seccao da
+        # cobertura). O par conta uma vez por substancia, por mais rotulos que
+        # a substancia tenha, e esta coberto se algum desses rotulos nomear o
+        # gene.
+        subst_gene_expected: set[tuple[str, str]] = set()
+        subst_gene_covered: set[tuple[str, str]] = set()
         genes_expected_total = 0
         genes_covered_total = 0
         docs_fully_covered = 0
@@ -1321,13 +1332,16 @@ class PGxGlobalAnalysis:
             # das recomendações publicadas está no RCM", mas dá peso cinco a
             # um fármaco bem coberto e peso um a outro mal coberto.
             #
-            # Para comparar fármacos entre si é preciso a versão sem
-            # repetição: um par fármaco-gene é um facto, e não vale mais por
-            # mais gente ter escrito sobre ele. Medido neste corpus: 65,52%
-            # ponderado contra 49,49% em pares distintos, 16 pontos de
-            # diferença.
+            # Sem repetição de guideline há ainda duas unidades: documento ×
+            # gene (um rótulo e um gene) e substância × gene (um fármaco e um
+            # gene, por mais rótulos que tenha). A dissertação usa a segunda.
+            # No corpus nacional: 35,8% ponderado, 23,3% em pares documento ×
+            # gene e 18,7% em pares substância × gene.
             distinct_expected.update((doc_name, g) for g in doc_expected_genes)
             distinct_covered.update((doc_name, g) for g in doc_covered_genes)
+            chave_subst = str(active_substance or "").strip().lower()
+            subst_gene_expected.update((chave_subst, g) for g in doc_expected_genes)
+            subst_gene_covered.update((chave_subst, g) for g in doc_covered_genes)
 
             if doc_covered_genes and doc_missing_genes:
                 docs_with_guideline_missing_genes += 1
@@ -1681,11 +1695,18 @@ class PGxGlobalAnalysis:
                 "percentage_guideline_genes_covered": self._pct(
                     genes_covered_total, genes_expected_total
                 ),
-                # Sem repetição: cada par fármaco-gene conta uma vez.
+                # Sem repetição de guideline, por documento × gene. O nome da
+                # chave ficou de uma versão anterior; a folha diz o que conta.
                 "distinct_drug_gene_expected": len(distinct_expected),
                 "distinct_drug_gene_covered": len(distinct_covered),
                 "percentage_distinct_drug_gene_covered": self._pct(
                     len(distinct_covered), len(distinct_expected)
+                ),
+                # A unidade da dissertação: substância × gene.
+                "distinct_substance_gene_expected": len(subst_gene_expected),
+                "distinct_substance_gene_covered": len(subst_gene_covered),
+                "percentage_distinct_substance_gene_covered": self._pct(
+                    len(subst_gene_covered), len(subst_gene_expected)
                 ),
                 "documents_fully_covered": docs_fully_covered,
                 "documents_partially_covered": docs_partially_covered,
@@ -1923,9 +1944,16 @@ class PGxGlobalAnalysis:
 
         s = result["summary"]
         n_docs = s["total_documents_processed"]
+        n_subst_g = s["documents_substance_with_guideline"]
+
+        # Números escritos como na dissertação em português: espaço nos
+        # milhares e vírgula decimal, uma casa. 5 551, 56,4%.
+        def num(n):
+            return f"{n:,}".replace(",", " ")
 
         def pct(parte, total):
-            return round(100 * parte / total, 2) if total else 0.0
+            v = round(100 * parte / total, 1) if total else 0.0
+            return f"{v:.1f}".replace(".", ",") + "%"
 
         blocos = [
             ("1. CORPUS", [
@@ -1939,10 +1967,12 @@ class PGxGlobalAnalysis:
             ]),
             ("2. CONTEÚDO FARMACOGENÓMICO   (denominador: documentos)", [
                 ("Documentos com conteúdo PGx", s["documents_with_pgx"],
-                 f"{pct(s['documents_with_pgx'], n_docs)}% de {n_docs}"),
+                 f"{pct(s['documents_with_pgx'], n_docs)} de {num(n_docs)}"),
                 ("   dos quais com entidades extraídas",
                  s["documents_with_pgx_and_entities"],
-                 f"{pct(s['documents_with_pgx_and_entities'], n_docs)}% de {n_docs}"),
+                 f"{pct(s['documents_with_pgx_and_entities'], n_docs)} de {num(n_docs)}; "
+                 f"{pct(s['documents_with_pgx_and_entities'], s['documents_with_pgx'])} "
+                 f"dos {num(s['documents_with_pgx'])} com PGx"),
                 ("   dos quais sem nenhuma entidade",
                  s["documents_with_pgx_without_entities"],
                  "o RCM refere genética sem nomear gene, alelo ou diplótipo"),
@@ -1951,7 +1981,7 @@ class PGxGlobalAnalysis:
             ("3. ENTIDADES EXTRAÍDAS   (denominador: menções)", [
                 ("Genes únicos", s["total_unique_genes"], ""),
                 ("Menções de genes", s["total_gene_mentions"],
-                 f"das quais {s['total_gene_mentions_with_guideline']} "
+                 f"das quais {num(s['total_gene_mentions_with_guideline'])} "
                  f"em genes com guideline do fármaco"),
                 ("Alelos únicos", s["total_unique_star_alleles"], ""),
                 ("Menções de alelos", s["total_star_allele_mentions"], ""),
@@ -1960,34 +1990,35 @@ class PGxGlobalAnalysis:
                 ("rsIDs únicos", s["total_unique_rsids"], ""),
                 ("Menções de rsIDs", s["total_rsid_mentions"], ""),
                 ("Menções de entidades (total)", s["total_entity_mentions"],
-                 f"das quais {s['total_entity_mentions_with_guideline']} "
+                 f"das quais {num(s['total_entity_mentions_with_guideline'])} "
                  f"com guideline"),
             ]),
-            ("4. GUIDELINES — o fármaco tem?   (denominador: documentos)", [
+            ("4. GUIDELINES: o fármaco tem?   (denominador: documentos)", [
                 ("Substância com guideline no ClinPGx",
                  s["documents_substance_with_guideline"],
                  "propriedade do fármaco; independente do que o RCM diz"),
                 ("   e o RCM menciona pelo menos um gene",
                  s["documents_with_guideline"],
-                 f"{pct(s['documents_with_guideline'], n_docs)}% de {n_docs}"),
+                 f"{pct(s['documents_with_guideline'], n_subst_g)} de {num(n_subst_g)}"),
                 ("   mas o RCM não menciona gene nenhum",
                  s["documents_substance_guideline_not_in_label"],
-                 "lacuna regulamentar"),
+                 f"{pct(s['documents_substance_guideline_not_in_label'], n_subst_g)} "
+                 f"de {num(n_subst_g)}; lacuna regulamentar"),
                 ("Substância sem guideline no ClinPGx",
                  n_docs - s["documents_substance_with_guideline"], ""),
             ]),
-            ("5. COBERTURA — pares documento × guideline   (denominador: pares)", [
+            ("5. COBERTURA: pares documento × guideline   (denominador: pares)", [
                 ("Pares avaliados", s["guideline_pairs_total"],
                  "uma linha por cada guideline de cada substância"),
                 ("   cobertos (todos os genes mencionados)",
                  s["guideline_pairs_covered"],
-                 f"{pct(s['guideline_pairs_covered'], s['guideline_pairs_total'])}%"),
+                 pct(s['guideline_pairs_covered'], s['guideline_pairs_total'])),
                 ("   parciais", s["guideline_pairs_partial"],
                  "só possível em guidelines de mais de um gene"),
                 ("   ausentes", s["guideline_pairs_absent"],
-                 f"{pct(s['guideline_pairs_absent'], s['guideline_pairs_total'])}%"),
+                 pct(s['guideline_pairs_absent'], s['guideline_pairs_total'])),
             ]),
-            ("6. COBERTURA — ao nível do gene   (denominador: posições de gene)", [
+            ("6. COBERTURA: ao nível do gene   (denominador: posições de gene)", [
                 ("Posições de gene esperadas",
                  s["guideline_genes_expected"],
                  "COM repetição: o mesmo par fármaco-gene conta uma vez por "
@@ -1997,17 +2028,29 @@ class PGxGlobalAnalysis:
                  s["percentage_guideline_genes_covered"],
                  "responde a: que fracção das recomendações publicadas está "
                  "no RCM?"),
-                ("Pares distintos fármaco-gene esperados",
+                ("Pares distintos documento × gene esperados",
                  s.get("distinct_drug_gene_expected", ""),
-                 "SEM repetição: cada par conta uma vez"),
-                ("Pares distintos cobertos",
+                 "SEM repetição de guideline: cada rótulo conta com cada gene "
+                 "uma vez"),
+                ("Pares distintos documento × gene cobertos",
                  s.get("distinct_drug_gene_covered", ""), ""),
-                ("% cobertura (pares distintos)",
+                ("% cobertura (pares documento × gene)",
                  s.get("percentage_distinct_drug_gene_covered", ""),
+                 "responde a: em que fracção dos rótulos está o gene que a "
+                 "guideline exige?"),
+                ("Pares distintos substância × gene esperados",
+                 s.get("distinct_substance_gene_expected", ""),
+                 "a unidade da dissertação: cada par fármaco-gene conta uma "
+                 "vez, por mais rótulos que a substância tenha"),
+                ("Pares distintos substância × gene cobertos",
+                 s.get("distinct_substance_gene_covered", ""),
+                 "coberto se algum rótulo da substância nomear o gene"),
+                ("% cobertura (pares substância × gene)",
+                 s.get("percentage_distinct_substance_gene_covered", ""),
                  "responde a: que fracção do conhecimento fármaco-gene está "
-                 "no RCM? — a métrica a usar para comparar fármacos"),
+                 "nos rótulos? É o valor citado na dissertação"),
             ]),
-            ("7. COBERTURA — ao nível do documento   (denominador: documentos com guideline)", [
+            ("7. COBERTURA: ao nível do documento   (denominador: documentos com guideline)", [
                 ("Totalmente cobertos", s["documents_fully_covered"], ""),
                 ("Parcialmente cobertos", s["documents_partially_covered"], ""),
                 ("Sem cobertura", s["documents_not_covered"], ""),
@@ -2033,10 +2076,10 @@ class PGxGlobalAnalysis:
             ]),
             ("9. PROVENIÊNCIA", [
                 ("Versões do pipeline", " ; ".join(
-                    f"{k}={v}" for k, v in sorted(s["pipeline_versions"].items())),
+                    f"{k}={num(v)}" for k, v in sorted(s["pipeline_versions"].items())),
                  "mais do que uma versão significa corpus não comparável"),
                 ("Configurações do modelo", " ; ".join(
-                    f"{k} ({v} docs)" for k, v in sorted(s["llm_configs"].items())),
+                    f"{k} ({num(v)} docs)" for k, v in sorted(s["llm_configs"].items())),
                  ""),
             ]),
         ]
@@ -2046,6 +2089,15 @@ class PGxGlobalAnalysis:
             ws.append(["Métrica", "Valor", "Nota"])
             for nome, valor, nota in linhas:
                 ws.append([nome, valor, nota])
+                celula = ws.cell(row=ws.max_row, column=2)
+                # Inteiros com separador de milhares; percentagens com uma
+                # casa. O Excel mostra-os com a pontuação do sistema.
+                if isinstance(valor, bool):
+                    pass
+                elif isinstance(valor, int):
+                    celula.number_format = "#,##0"
+                elif isinstance(valor, float):
+                    celula.number_format = "0.0"
             ws.append([])
 
     def _write_documents(self, wb: Workbook, result: dict) -> None:
@@ -2328,7 +2380,7 @@ class PGxGlobalAnalysis:
         ])
         ws.append([
             "Documentos com guideline sem PGx",
-            "Deve ser 0 — com a definição por par, uma guideline exige entidade detetada",
+            "Deve ser 0: com a definição por par, uma guideline exige entidade detetada",
             s["documents_with_guideline_without_pgx"],
         ])
         ws.append([
@@ -2358,7 +2410,7 @@ class PGxGlobalAnalysis:
         ])
 
         ws.append([])
-        ws.append(["COBERTURA — pares documento × guideline", "", ""])
+        ws.append(["COBERTURA: pares documento × guideline", "", ""])
         ws.append([
             "Pares avaliados",
             "Cada guideline da substância, por documento",
@@ -2381,7 +2433,7 @@ class PGxGlobalAnalysis:
         ])
 
         ws.append([])
-        ws.append(["COBERTURA — a nível do gene", "", ""])
+        ws.append(["COBERTURA: a nível do gene", "", ""])
         ws.append([
             "Genes esperados (com repetição)",
             "Soma dos genes exigidos em todos os pares",
@@ -2394,12 +2446,29 @@ class PGxGlobalAnalysis:
         ])
         ws.append([
             "% cobertura de genes de guideline",
-            "A métrica principal: quanto os RCMs cobrem as guidelines",
+            "Ponderada por guideline: um par fármaco-gene conta uma vez por "
+            "cada organismo que publicou sobre ele",
             s["percentage_guideline_genes_covered"],
+        ])
+        ws.append([
+            "Pares distintos substância × gene esperados",
+            "Cada par fármaco-gene conta uma vez, por mais rótulos que a "
+            "substância tenha",
+            s["distinct_substance_gene_expected"],
+        ])
+        ws.append([
+            "Pares distintos substância × gene cobertos",
+            "Algum rótulo da substância nomeia o gene",
+            s["distinct_substance_gene_covered"],
+        ])
+        ws.append([
+            "% cobertura (pares substância × gene)",
+            "A métrica citada na dissertação",
+            s["percentage_distinct_substance_gene_covered"],
         ])
 
         ws.append([])
-        ws.append(["COBERTURA — a nível do documento", "", ""])
+        ws.append(["COBERTURA: a nível do documento", "", ""])
         ws.append([
             "Documentos totalmente cobertos",
             "Todas as guidelines da substância cobertas",
@@ -2417,7 +2486,7 @@ class PGxGlobalAnalysis:
         ])
         ws.append([
             "Documentos com guideline MAS com genes em falta",
-            "Menciona pelo menos um gene e omite pelo menos um — ver coluna "
+            "Menciona pelo menos um gene e omite pelo menos um; ver coluna "
             "'Genes de guideline EM FALTA' na folha Documentos",
             s["documents_with_guideline_missing_genes"],
         ])
@@ -2758,7 +2827,7 @@ class PGxGlobalAnalysis:
             ])
 
         if not linhas:
-            ws.append(["(nenhum — todos os documentos foram legíveis)"])
+            ws.append(["(nenhum: todos os documentos foram legíveis)"])
 
     def _write_genes_sem_tsv(self, wb: Workbook, result: dict) -> None:
         ws = wb.create_sheet("Genes fora do genes.tsv")

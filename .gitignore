@@ -47,6 +47,17 @@ QUARENTENA_CONTAMINADOS/
 out_*/
 benchmark11/
 
+# Os documentos que sairam do corpus a 26-09-2026 por o registo nao estar no
+# indice do INFOMED, e as versoes da base e do Excel de antes dessa correccao.
+# Ficam no disco; as listas que os definem estao em extra-tools.
+/fora_do_indice/
+# Correccao das associacoes as guidelines (28-09-2026): as copias de antes
+# ficam no disco; so o LEIA-ME e a lista de alteracoes vao para o repositorio.
+/correcao_guidelines/antes/
+/correcao_guidelines/codigo_antes/
+/correcao_guidelines/*.db
+extra-tools/analise/fora_do_indice/cache/
+
 # Listas de lotes e registos de execucao.
 lote_*.txt
 glote_*.txt

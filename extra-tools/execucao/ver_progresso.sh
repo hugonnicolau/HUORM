@@ -3,7 +3,7 @@
 #     bash ver_progresso.sh
 
 set -u
-cd ~/Desktop/FINAL || exit 1
+cd "$(dirname "$0")/../.." || exit 1   # raiz do projecto
 
 SAIDA="out_nacional"
 TOTAL=$(ls RCMs_a_processar/*.pdf 2>/dev/null | wc -l | tr -d ' ')

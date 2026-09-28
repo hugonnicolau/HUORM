@@ -10,7 +10,7 @@ Este script tira um bloco verdadeiro de um documento já processado e mede a
 latência a várias concorrências, com o mesmo prompt e as mesmas opções do
 pipeline.
 
-Correr a partir de ~/Desktop/FINAL, com a corrida a decorrer ou parada:
+Correr a partir da raiz do projecto, com a corrida a decorrer ou parada:
     python3 probe_real.py
     python3 probe_real.py 8 16 32 48
 """

@@ -1,14 +1,14 @@
 #!/bin/bash
 # Corrida nacional: 5 623 RCM, 8 processos.
 #
-# NÃO COLAR NO TERMINAL. Guardar em ~/Desktop/FINAL e correr:
+# NÃO COLAR NO TERMINAL. Guardar na raiz do projecto e correr:
 #     bash correr_nacional.sh
 #
 # Pode ser interrompida a qualquer momento. O --retomar salta o que já tem
 # Document_Unique_PGx.json, por isso voltar a correr continua de onde ficou.
 
 set -u
-cd ~/Desktop/FINAL || exit 1
+cd "$(dirname "$0")/../.." || exit 1   # raiz do projecto
 
 MODELO="glm-5.3-flash"
 SAIDA="out_nacional"

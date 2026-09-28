@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Conta retentativas, 429 e chamadas nos logs da corrida.
 
-Correr a partir de ~/Desktop/FINAL:
+Correr a partir da raiz do projecto:
     python3 onde_esta_o_tempo.py
 """
 import glob

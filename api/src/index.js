@@ -156,11 +156,17 @@ async function rotear(url, db) {
       db.prepare(
         `SELECT e.tipo, e.valor, e.gene, SUM(e.mencoes) AS mencoes,
                 (SELECT GROUP_CONCAT(DISTINCT es.seccao)
-                   FROM entidade_seccao es WHERE es.entidade_id = e.id) AS seccoes
+                   FROM entidade_seccao es WHERE es.entidade_id = e.id) AS seccoes,
+                -- Ordem da nomenclatura, nao da frequencia: o gene e' o
+                -- locus, o alelo e' a variante desse locus, o diplotipo e' o
+                -- par de alelos. Ordenar so por mencoes intercalava os tres
+                -- e obrigava a ler a coluna do tipo linha a linha.
+                CASE e.tipo WHEN 'gene' THEN 0 WHEN 'alelo' THEN 1
+                            WHEN 'diplotipo' THEN 2 ELSE 3 END AS ordem_tipo
            FROM entidade e JOIN documento d ON d.id = e.documento_id
           WHERE d.substancia_id = ?1
           GROUP BY e.tipo, e.valor, e.gene
-          ORDER BY mencoes DESC`
+          ORDER BY ordem_tipo, mencoes DESC`
       ).bind(s.id).all(),
       db.prepare(
         `SELECT g.guideline_id, g.fonte, g.gene, c.estado,
@@ -279,8 +285,11 @@ async function rotear(url, db) {
         `SELECT e.tipo, e.valor, e.gene, e.mencoes, e.pharmgkb_id,
                 e.guideline_ids,
                 (SELECT GROUP_CONCAT(DISTINCT es.seccao)
-                   FROM entidade_seccao es WHERE es.entidade_id = e.id) AS seccoes
-           FROM entidade e WHERE e.documento_id = ?1 ORDER BY e.mencoes DESC`
+                   FROM entidade_seccao es WHERE es.entidade_id = e.id) AS seccoes,
+                CASE e.tipo WHEN 'gene' THEN 0 WHEN 'alelo' THEN 1
+                            WHEN 'diplotipo' THEN 2 ELSE 3 END AS ordem_tipo
+           FROM entidade e WHERE e.documento_id = ?1
+          ORDER BY ordem_tipo, e.mencoes DESC`
       ).bind(d.id).all(),
       db.prepare(
         "SELECT seccao, texto FROM passagem WHERE documento_id = ?1 ORDER BY seccao"
