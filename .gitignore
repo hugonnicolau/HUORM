@@ -114,3 +114,18 @@ basedados/COMO_MONTAR.md
 # Sistema.
 .DS_Store
 Thumbs.db
+
+# --- INTERNAL TOOLING (removed from the public repository, 01-10-2026) ---
+# Run operation (launching, progress, diagnostics, batches, cache) and
+# internal notes. They stay on disk; they are not part of the method.
+basedados/A_CORRIGIR.md
+basedados/site/
+correcao_guidelines/
+documentacao/
+extra-tools/execucao/
+extra-tools/preparacao/preaquecer_cache.py
+extra-tools/preparacao/refazer_cache_antiga.py
+extra-tools/preparacao/verificar_cache.py
+extra-tools/preparacao/fazer_lotes.py
+extra-tools/preparacao/lotes_finais.py
+extra-tools/preparacao/lotes_referencia.py

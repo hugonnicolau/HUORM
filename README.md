@@ -1,73 +1,76 @@
 <img src="logo.png" alt="HUORM" width="380">
 
-Pipeline de extracção de informação farmacogenómica dos Resumos das
-Características do Medicamento (RCM) portugueses, baseado num modelo de
-linguagem.
+A pipeline, based on a large language model, for extracting pharmacogenomic
+information from Portuguese Summaries of Product Characteristics (SmPCs,
+*Resumos das Características do Medicamento*).
 
-Dissertação de mestrado em Bioinformática e Biologia Computacional, Faculdade
-de Ciências da Universidade de Lisboa, 2026.
+MSc dissertation in Bioinformatics and Computational Biology, Faculdade de
+Ciências da Universidade de Lisboa, 2026.
 
-**Consulta pública:** <https://huorm-api.hugonnicolau.workers.dev>
+**Public query interface:** <https://huorm-api.hugonnicolau.workers.dev>
 
-A mesma morada serve as duas coisas. Na raiz está uma página de consulta; em
-`/api` está a mesma informação em JSON, sem credenciais, para ser lida por
-outro programa. Os números publicados na dissertação reproduzem-se a partir
-dali por consulta directa.
+The same address serves both: the root is a search page, and `/api` returns
+the same information as JSON, without credentials, to be read by another
+program. The figures reported in the dissertation can be reproduced from it by
+direct query.
 
 ---
 
-## Estrutura
+## Structure
 
 ```
-RCMprocessor/       O pipeline. É isto que a dissertação descreve.
-basedados/          Esquema SQLite, construtor e página de consulta local.
-api/                API pública (Cloudflare Workers + D1).
-extra-tools/        Tudo o que não é o pipeline.
-  preparacao/         antes da corrida: índice MRCONSO, cache, lotes
-  execucao/           durante: lançamento, progresso, diagnóstico
-  analise/            depois: os números que entram na dissertação
-  testes/             199 testes automáticos
-  dados/              saídas guardadas em CSV
-Dockerfile          Ambiente de execução fixado.
+RCMprocessor/       The pipeline. This is what the dissertation describes.
+basedados/          SQLite schema (esquema.sql), builder and the database (huorm.db).
+api/                Public API (Cloudflare Workers + D1).
+extra-tools/        Everything that is not the pipeline.
+  preparacao/         before the run: UMLS index, guideline recomputation
+  analise/            after the run: the numbers reported in the dissertation
+  testes/             199 automated tests
+  dados/              saved outputs in CSV
+Dockerfile          Pinned execution environment.
 ```
 
-A divisão segue uma regra: o `RCMprocessor/` contém apenas os módulos que a
-corrida importa. Tudo o que se corre à mão, para preparar, acompanhar ou
-analisar, está em `extra-tools/`, porque não faz parte do método descrito na
-dissertação e não deve dar a entender que faz.
+The split follows one rule: `RCMprocessor/` contains only the modules the run
+imports. Everything run by hand, to prepare or analyse, is in `extra-tools/`,
+because it is not part of the method described in the dissertation.
+
+Folder, file, table and column names are in Portuguese, as referenced in the
+dissertation. The prompts are in Portuguese because the SmPCs are.
 
 ## Corpus
 
-5 605 RCM do INFOMED, deduplicados por identidade textual exacta; 5 551
-chegaram à análise (54 não tinham texto utilizável depois da conversão). Deles
-saíram 5 831 menções de entidades farmacogenómicas, em 3 131 documentos com
-conteúdo farmacogenómico.
+5,605 SmPCs from INFOMED, deduplicated by exact textual identity; 5,551 were
+analysed (54 had no usable text after conversion). They yielded 5,831 mentions
+of pharmacogenomic entities, and 3,131 documents have pharmacogenomic content.
 
-## Correr os testes
+## Running the tests
 
 ```bash
 python extra-tools/testes/run_all.py
 ```
 
-Devem passar 199 de 199.
+All 199 should pass.
 
-## O que não está aqui
+## What is not included
 
-O corpus de RCM não é redistribuído. São documentos públicos do INFOMED, e
-reconstroem-se a partir da fonte com as ferramentas de
-`extra-tools/preparacao`.
+The SmPC corpus is not redistributed. The documents are public on INFOMED.
 
-O índice do UMLS também não, porque a licença o proíbe. Gera-se com o
-`construir_indice_mrconso.py` a partir de uma cópia licenciada do MRCONSO.
+The UMLS index is not included either, because the UMLS licence forbids it.
+It is generated with `extra-tools/preparacao/construir_indice_mrconso.py` from
+a licensed copy of MRCONSO.
 
-A base de dados construída (`basedados/huorm.db`, 6 MB) está incluída. Sem ela
-o repositório não seria reproduzível, já que o corpus não vem junto.
+The ClinPGx files are not included; they are downloaded from
+<https://www.clinpgx.org/downloads>, and the download dates used are stated in
+the dissertation.
 
-## Chave do modelo
+The database (`basedados/huorm.db`, 6 MB) is included. Without it the
+repository would not be reproducible, since the corpus is not.
 
-O pipeline chama um modelo servido pelo Ollama Cloud. A chave entra por
-variável de ambiente e nunca fica no código nem na imagem:
+## Model key
+
+The pipeline calls a model served by Ollama Cloud. The key is read from an
+environment variable and is never stored in the code or in the image:
 
 ```bash
-cp .env.example .env     # e preencher OLLAMA_API_KEY
+cp .env.example .env     # then fill in OLLAMA_API_KEY
 ```
