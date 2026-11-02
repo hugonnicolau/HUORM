@@ -807,7 +807,7 @@ async function estatisticas() {
     cob: "/api/cobertura/genes",
     genes: "/api/genes?limite=20",
     sec: "/api/seccoes",
-    falta: "/api/cobertura?estado=ausente&limite=100",
+    falta: "/api/cobertura?estado=ausente&limite=1000",
   };
   const res = await Promise.all(Object.values(urls).map(api));
   if (res.some(x => !x.ok)) {
@@ -901,7 +901,8 @@ function desenharEstatisticas() {
       </div>`
     + `<div class="cartao" style="margin-top:20px">
         <h3>Substâncias com guideline cujo RCM não nomeia o gene</h3>
-        <p class="explica">Pares fármaco-gene com guideline publicada em que o RCM não nomeia o gene, ordenados pelo número de RCMs.</p>
+        <p class="explica">Pares fármaco-gene com guideline publicada em que o RCM não nomeia o gene, ordenados pelo número de RCMs.
+          Cada linha corresponde a uma guideline, pelo que o mesmo par pode surgir uma vez por organismo (por exemplo, CPIC e DPWG).</p>
         ${tabela(falta, [
             { k: "substancia", t: "Substância" },
             { k: "gene", t: "Gene", f: gene },
