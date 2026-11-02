@@ -15,7 +15,8 @@
  * pedido e concatenado para dentro de SQL.
  */
 
-import { PAGINA } from "./pagina.js";
+// A página está num ficheiro HTML à parte; o wrangler importa-o como texto.
+import PAGINA from "./pagina.html";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
