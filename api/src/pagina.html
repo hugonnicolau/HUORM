@@ -120,6 +120,22 @@
   .kpi:nth-child(4) { border-top:3px solid var(--verde); }
   .nota { margin:12px 0 0; padding:10px 14px; background:var(--coral-claro); border-radius:8px;
           font-size:13.5px; color:var(--tinta); }
+
+  /* Animação do Início: dupla hélice, sem moldura, no espaço que sobra na coluna
+     da direita. A coluna estica até à altura do texto. */
+  .heroi { align-items:stretch; }
+  .heroi > div:last-child { display:flex; flex-direction:column; }
+  .helice { flex:1; min-height:200px; margin:6px 0 20px; position:relative; overflow:hidden; }
+  .helice svg { position:absolute; inset:0; width:100%; height:100%; }
+  .helice .fio { fill:none; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; }
+  .helice .fio.a { stroke:var(--coral); }
+  .helice .fio.b { stroke:var(--azul); }
+  .helice .par { stroke-width:2.2; stroke-linecap:round; }
+  .helice .par.a { stroke:var(--coral); }
+  .helice .par.b { stroke:var(--azul); }
+  .helice .no.a { fill:var(--coral); }
+  .helice .no.b { fill:var(--azul); }
+
   .atalhos { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:28px; }
   .atalho { display:block; background:var(--cartao); border:1px solid var(--linha);
             border-radius:var(--raio); padding:18px 20px; color:var(--tinta);
@@ -249,6 +265,7 @@
            color:var(--suave); font-size:13px; }
 
   @media (max-width: 860px) {
+    .helice { display:none; }
     .heroi, .grelha-2, .termos { grid-template-columns:1fr; }
     .atalhos { grid-template-columns:1fr; }
     .topo-in { flex-direction:column; align-items:flex-start; gap:0; padding-top:10px; position:relative; }
@@ -294,10 +311,10 @@
     <div class="heroi">
       <div class="cartao texto">
         <h1>Informação farmacogenómica dos RCMs portugueses</h1>
-        <p>Esta plataforma reúne informação farmacogenómica (PGx) extraída automaticamente dos Resumos das Características do Medicamento (RCMs) autorizados em Portugal. A base de dados permite explorar a evidência PGx presente nos RCMs, incluindo genes, variantes, fenótipos e recomendações relevantes para a utilização segura e eficaz dos medicamentos.</p>
-        <p>Além da pesquisa por substância ativa ou gene, a plataforma disponibiliza análises sobre a cobertura das guidelines utilizadas na prática clínica (CPIC, DPWG), os genes mais frequentemente referidos, bem como a distribuição da informação PGx pelas diferentes secções do documento.</p>
-        <p>Todas as consultas são efetuadas através da API pública da plataforma.</p>
-        <p>A base de dados atualmente integra mais de 5.500 RCMs, abrangendo mais de 1.500 substâncias ativas e milhares de menções a entidades PGx.</p>
+        <p>Esta plataforma reúne informação farmacogenómica extraída dos Resumos das Características do Medicamento (RCMs) autorizados em Portugal. A base de dados permite explorar a informação farmacogenómica incluída nestes documentos, incluindo genes envolvidos na farmacocinética e na farmacodinâmica, variantes genéticas, alelos, fenótipos e recomendações relevantes para a utilização segura e eficaz dos medicamentos, quando disponíveis.</p>
+        <p>A plataforma permite a pesquisa por substância ativa ou gene e disponibiliza análises sobre a correspondência entre a informação dos RCM e as recomendações das guidelines clínicas do <a href="https://www.clinpgx.org/cpic" target="_blank" rel="noopener">Clinical Pharmacogenetics Implementation Consortium (CPIC)</a> e do <a href="https://www.clinpgx.org/page/dpwg" target="_blank" rel="noopener">Dutch Pharmacogenetics Working Group (DPWG)</a>, identificando também os genes mais frequentemente referidos, bem como a distribuição da informação farmacogenómica pelas diferentes secções dos RCMs</p>
+        <p>Todas as consultas são efetuadas através da interface de acesso aos dados da plataforma.</p>
+        <p>Atualmente a base de dados integra mais de 5.500 RCMs, abrangendo mais de 1.500 substâncias ativas e milhares de referências farmacogenómicas, incluindo genes, variantes, alelos e fenótipos.</p>
       </div>
       <div>
         <div class="kpis" id="kpis">
@@ -308,6 +325,9 @@
         </div>
         <p class="contagem" id="kpis-nota"></p>
         <p class="nota"><b>Nota:</b> o corpus foi extraído e analisado em setembro de 2026.</p>
+        <div class="helice" id="helice" aria-hidden="true">
+          <svg id="helice-svg"></svg>
+        </div>
       </div>
     </div>
     <div class="atalhos">
@@ -927,9 +947,9 @@ const GLOSSARIO = [
   { t: "Alelo", spgh: "alelo", d: `Cada uma das formas alternativas de um gene ou de uma sequência de ADN numa mesma posição (locus) do cromossoma. Em farmacogenómica, os alelos designam-se habitualmente pelo símbolo do gene seguido de um asterisco e de um número (nomenclatura “estrela”), por exemplo <i class="g">CYP2D6*4</i> ou <i class="g">CYP2C9*3</i>. Alguns alelos alteram a função da proteína codificada e, com ela, a resposta ao medicamento.` },
   { t: "API", s: "Interface de Programação de Aplicações", d: `Conjunto de endereços (endpoints) através dos quais um programa pode consultar a base de dados e receber as respostas num formato estruturado (JSON), sem passar pela página. Todas as consultas desta plataforma, incluindo as da própria página, são feitas através da API pública, descrita na tab <a href="#api">API</a>.` },
   { t: "ATC", s: "classificação Anatómica Terapêutica Química", d: `Sistema de classificação de substâncias ativas da Organização Mundial da Saúde, que as agrupa pelo órgão ou sistema sobre o qual atuam e pelas suas propriedades terapêuticas, farmacológicas e químicas. Cada RCM tem um código ATC; por exemplo, L04AE03 para o siponimod.` },
-  { t: "CPIC", s: "Clinical Pharmacogenetics Implementation Consortium", d: `Consórcio internacional que publica guidelines de prática clínica, revistas por pares, sobre como ajustar a terapêutica a partir do resultado de testes genéticos, para pares fármaco-gene específicos.` },
+  { t: "CPIC", s: "Clinical Pharmacogenetics Implementation Consortium", link: ["https://www.clinpgx.org/cpic", "Ver as guidelines do CPIC no ClinPGx ↗"], d: `Consórcio internacional que publica guidelines de prática clínica, revistas por pares, sobre como ajustar a terapêutica a partir do resultado de testes genéticos, para pares fármaco-gene específicos.` },
   { t: "Diplótipo", d: `Combinação dos dois haplótipos (ou alelos) que uma pessoa tem para um gene, um herdado de cada progenitor; escreve-se, por exemplo, <i class="g">CYP2C9*1/*3</i>. É a partir do diplótipo que se infere o fenótipo, como a classe de metabolizador. Nesta base, os genótipos de uma única posição (por exemplo, TT em <i class="g">SLCO1B1</i> c.521T&gt;C) estão também registados como diplótipos.` },
-  { t: "DPWG", s: "Dutch Pharmacogenetics Working Group", d: `Grupo de trabalho criado pela associação farmacêutica dos Países Baixos (KNMP) que publica recomendações terapêuticas baseadas no genótipo, integradas nos sistemas de apoio à prescrição e à dispensa nesse país.` },
+  { t: "DPWG", s: "Dutch Pharmacogenetics Working Group", link: ["https://www.clinpgx.org/page/dpwg", "Ver as guidelines do DPWG no ClinPGx ↗"], d: `Grupo de trabalho criado pela associação farmacêutica dos Países Baixos (KNMP) que publica recomendações terapêuticas baseadas no genótipo, integradas nos sistemas de apoio à prescrição e à dispensa nesse país.` },
   { t: "Entidade", d: `Nesta plataforma, um elemento farmacogenómico concreto extraído do texto de um RCM: um gene, um alelo ou um diplótipo. Cada entidade fica associada ao RCM e às secções onde é mencionada, com o número de menções.` },
   { t: "Farmacogene", d: `Gene cuja variação influencia a resposta a um ou mais medicamentos, por codificar, por exemplo, uma enzima que metaboliza o fármaco (<i class="g">CYP2D6</i>, <i class="g">CYP2C19</i>), um transportador (<i class="g">SLCO1B1</i>), uma molécula do sistema imunitário (<i class="g">HLA-B</i>) ou o próprio alvo terapêutico.` },
   { t: "Farmacogenómica", s: "PGx", spgh: "farmacogenomica", d: `Estudo da forma como a variação genética de uma pessoa influencia a resposta aos medicamentos (eficácia, dose necessária e risco de reações adversas), com o objetivo de individualizar a terapêutica. Inclui a farmacogenética, que estuda a variação na sequência do ADN de genes individuais.` },
@@ -989,6 +1009,83 @@ function paginaApi() {
 }
 
 // ---------------------------------------------------------------------
+// Animação do Início: dupla hélice a rodar
+// ---------------------------------------------------------------------
+function helice() {
+  // Dupla hélice sem moldura, na diagonal, a desvanecer nas pontas. Cada par de
+  // bases é desenhado em duas metades, uma da cor de cada cadeia.
+  const caixa = $("#helice"), svg = $("#helice-svg");
+  if (!caixa || !svg) return;
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs = {}) => { const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; };
+  const parado = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const PASSO = 16, TORCAO = 0.034, ANGULO = -24;   // px entre pares, rad por px, inclinação
+  let W = 0, H = 0, L = 0, A = 0, fioA, fioB, pares = [];
+
+  function montar() {
+    W = caixa.clientWidth; H = caixa.clientHeight;
+    if (!W || !H) return false;
+    L = Math.hypot(W, H) * 1.05;
+    A = Math.max(26, Math.min(W, H) * 0.17);
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    svg.innerHTML = "";
+    const defs = el("defs");
+    const grad = el("linearGradient", { id: "helice-grad", gradientUnits: "userSpaceOnUse", x1: -L / 2, y1: 0, x2: L / 2, y2: 0 });
+    [["0", 0], ["0.22", 1], ["0.78", 1], ["1", 0]].forEach(([o, a]) =>
+      grad.appendChild(el("stop", { offset: o, "stop-color": "#fff", "stop-opacity": a })));
+    const mask = el("mask", { id: "helice-mascara", maskUnits: "userSpaceOnUse", x: -L / 2, y: -A * 2, width: L, height: A * 4 });
+    mask.appendChild(el("rect", { x: -L / 2, y: -A * 2, width: L, height: A * 4, fill: "url(#helice-grad)" }));
+    defs.append(grad, mask);
+    const g = el("g", { transform: `translate(${W / 2} ${H / 2}) rotate(${ANGULO})` });
+    const gm = el("g", { mask: "url(#helice-mascara)" });
+    fioB = el("path", { class: "fio b" }); fioA = el("path", { class: "fio a" });
+    const gp = el("g");
+    pares = [];
+    for (let x = -L / 2; x <= L / 2; x += PASSO) {
+      const p = { x, a: el("line", { class: "par a" }), b: el("line", { class: "par b" }),
+                  na: el("circle", { class: "no a" }), nb: el("circle", { class: "no b" }) };
+      gp.append(p.a, p.b, p.na, p.nb); pares.push(p);
+    }
+    gm.append(fioB, gp, fioA); g.appendChild(gm); svg.append(defs, g);
+    return true;
+  }
+
+  function desenhar(t) {
+    let dA = "", dB = "";
+    for (let x = -L / 2; x <= L / 2; x += 5) {
+      const y = A * Math.sin(t + x * TORCAO);
+      dA += (dA ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1);
+      dB += (dB ? "L" : "M") + x.toFixed(1) + " " + (-y).toFixed(1);
+    }
+    fioA.setAttribute("d", dA); fioB.setAttribute("d", dB);
+    for (const p of pares) {
+      const ang = t + p.x * TORCAO, y = A * Math.sin(ang), c = Math.cos(ang);
+      p.a.setAttribute("x1", p.x); p.a.setAttribute("x2", p.x); p.a.setAttribute("y1", y); p.a.setAttribute("y2", 0);
+      p.b.setAttribute("x1", p.x); p.b.setAttribute("x2", p.x); p.b.setAttribute("y1", 0); p.b.setAttribute("y2", -y);
+      const op = (0.25 + 0.2 * Math.abs(c)).toFixed(2);
+      p.a.style.opacity = op; p.b.style.opacity = op;
+      p.na.setAttribute("cx", p.x); p.na.setAttribute("cy", y); p.na.setAttribute("r", (2.6 + 1.4 * c).toFixed(2));
+      p.nb.setAttribute("cx", p.x); p.nb.setAttribute("cy", -y); p.nb.setAttribute("r", (2.6 - 1.4 * c).toFixed(2));
+      p.na.style.opacity = (0.6 + 0.4 * c).toFixed(2); p.nb.style.opacity = (0.6 - 0.4 * c).toFixed(2);
+    }
+  }
+
+  // Remonta quando a caixa muda de tamanho, incluindo quando passa de escondida
+  // (página aberta noutra tab) a visível.
+  if (window.ResizeObserver)
+    new ResizeObserver(() => { if (montar()) desenhar(parado ? 0.6 : performance.now() / 1600); }).observe(caixa);
+  montar();
+  if (parado) { if (W) desenhar(0.6); return; }   // quem pede menos movimento vê a hélice parada
+  const visivel = () => $("#tab-inicio").classList.contains("ativa") && !document.hidden;
+  function quadro(ms) {
+    if (visivel() && W) desenhar(ms / 1600);
+    requestAnimationFrame(quadro);
+  }
+  requestAnimationFrame(quadro);
+}
+
+// ---------------------------------------------------------------------
 // Modo noturno
 // ---------------------------------------------------------------------
 const raiz = document.documentElement;
@@ -1010,6 +1107,7 @@ if (window.matchMedia) {
 // ---------------------------------------------------------------------
 definirModo("substancia");
 navegar();
+try { helice(); } catch (e) { console.warn("animação:", e); }
 </script>
 </body>
 </html>
